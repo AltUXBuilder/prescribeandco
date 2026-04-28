@@ -253,7 +253,6 @@ export default async function ConditionPage({ params }: PageProps) {
               </div>
             }
           >
-            {/* @ts-expect-error Async Server Component */}
             <ConditionProducts slug={slug} />
           </Suspense>
         </div>

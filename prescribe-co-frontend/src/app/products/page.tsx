@@ -75,7 +75,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </form>
         </div>
         <Suspense fallback={<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{Array.from({ length: 12 }).map((_, i) => <ProductCardSkeleton key={i} />)}</div>}>
-          {/* @ts-expect-error Async Server Component */}
           <ProductGrid medicineType={activeType} search={search} page={page} />
         </Suspense>
       </div>
