@@ -1,6 +1,6 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import {
-  IsDate,
+  IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -57,9 +57,8 @@ export class RegisterDto {
   phone?: string;
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  dateOfBirth?: Date;
+  @IsDateString({})
+  dateOfBirth?: string;
 }
 
 // ── Register as Prescriber ───────────────────────────────────────────────────

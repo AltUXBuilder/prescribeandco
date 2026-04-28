@@ -39,7 +39,7 @@ export class UsersService {
       lastName: dto.lastName,
       nhsNumber: dto.nhsNumber ?? null,
       phone: dto.phone ?? null,
-      dateOfBirth: dto.dateOfBirth ?? null,
+      dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
     });
 
     return this.userRepo.save(user);
