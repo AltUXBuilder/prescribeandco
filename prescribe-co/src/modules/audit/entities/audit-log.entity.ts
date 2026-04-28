@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Expose } from 'class-transformer';
 import { AuditAction } from '../audit-action.enum';
-import { User } from '../../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
 /**
  * Immutable audit record. Rows are NEVER updated or deleted.

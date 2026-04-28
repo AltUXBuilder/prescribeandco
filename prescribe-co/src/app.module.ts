@@ -8,6 +8,7 @@ import {
   jwtConfig,
   throttleConfig,
   storageConfig,
+  paymentsConfig,
 } from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -30,7 +31,7 @@ import { RbacDemoController } from './modules/auth/rbac-demo.controller';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, dbConfig, jwtConfig, throttleConfig, storageConfig],
+      load: [appConfig, dbConfig, jwtConfig, throttleConfig, storageConfig, paymentsConfig],
       envFilePath: '.env',
     }),
     ThrottlerModule.forRootAsync({
