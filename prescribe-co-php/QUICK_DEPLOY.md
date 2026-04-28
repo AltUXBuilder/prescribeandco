@@ -1,72 +1,80 @@
-# Quick Deploy — 4 Steps, No SSH
+# Quick Deploy — No SSH, No Document Root Change
+
+---
+
+## What goes where
+
+```
+public_html/                        ← Hostinger web root (DO NOT change this)
+│
+├── index.php                       ← from hostinger-root/
+├── .htaccess                       ← from hostinger-root/
+├── setup.php                       ← from hostinger-root/  (deleted after install)
+├── css/
+│   └── app.css                     ← from hostinger-root/css/
+│
+└── prescribeandco/                 ← upload prescribe-co-php/ contents here
+    ├── app/
+    ├── bootstrap/
+    ├── config/
+    ├── database/
+    ├── resources/
+    ├── routes/
+    ├── storage/
+    ├── artisan
+    ├── composer.json
+    └── composer.lock
+```
 
 ---
 
 ## Step 1 — Upload files
 
-1. On this GitHub page click the green **Code** button → **Download ZIP**
-2. Unzip it — go inside the `prescribe-co-php` folder
-3. Select everything inside `prescribe-co-php`, zip those files
-4. In **hPanel → Files → File Manager** → open `public_html/`
-5. Create a folder called `prescribeandco`
-6. Upload your zip into that folder → right-click it → **Extract**
+**In hPanel → Files → File Manager → open `public_html/`:**
+
+1. Create a folder called `prescribeandco` inside `public_html/`
+2. Upload the contents of `prescribe-co-php/` into `public_html/prescribeandco/`
+3. Upload the contents of `prescribe-co-php/hostinger-root/` directly into `public_html/`
+   (index.php, .htaccess, setup.php and the css/ folder go at the root level)
+
+**Tip:** Zip each group separately and extract in the right place.
 
 ---
 
-## Step 2 — Set document root
+## Step 2 — Set up the database
 
-**hPanel → Domains → Manage → click ⋮ next to your domain → Edit**
-
-Change **Document Root** to:
-```
-public_html/prescribeandco/public
-```
-Click Save.
-
----
-
-## Step 3 — Run the SQL
-
-**hPanel → Databases → MySQL Databases**
+**hPanel → Databases → MySQL Databases:**
 - Create a database — e.g. `u123456789_prescribe`
 - Create a user — e.g. `u123456789_appuser` with a strong password
 - Add the user to the database → **All Privileges**
 
-**hPanel → Databases → phpMyAdmin**
-- Click your database name in the left panel
-- Click the **SQL** tab
-- Open `database/prescribeandco.sql`, paste everything → **Go**
+**hPanel → Databases → phpMyAdmin:**
+- Click your database → **SQL** tab
+- Open `prescribeandco/database/prescribeandco.sql`, paste everything → **Go**
 
 ---
 
-## Step 4 — Run the browser installer
+## Step 3 — Run the browser installer
 
 Visit:
 ```
-https://yourdomain.com/setup.php
+https://your-temp-domain.hostingersite.com/setup.php
 ```
 
-Fill in your domain and the database details from Step 3, then click **Install now**.
+Fill in your domain and the database details from Step 2, click **Install now**.
 
-The installer will:
-- Install all PHP dependencies automatically
-- Generate your app key and JWT secrets
-- Write your config file
-- Set folder permissions
-- Delete itself when done
-
-**That's it — your site is live.**
+The installer will install dependencies, write your config, generate all secrets, set permissions, and delete itself.
 
 ---
 
-## Check it works
+## Step 4 — Check it works
 
 | Page | URL |
 |---|---|
-| Homepage | `https://yourdomain.com` |
-| Treatments | `https://yourdomain.com/treatments` |
-| Register | `https://yourdomain.com/register` |
-| API health | `https://yourdomain.com/api/v1/health` |
+| Homepage | `https://your-temp-domain.hostingersite.com` |
+| Treatments | `https://your-temp-domain.hostingersite.com/treatments` |
+| Register | `https://your-temp-domain.hostingersite.com/register` |
+| API health | `https://your-temp-domain.hostingersite.com/api/v1/health` |
 
 ---
 
@@ -74,16 +82,16 @@ The installer will:
 
 | Problem | Fix |
 |---|---|
-| setup.php returns 404 | Document root not set correctly — check Step 2 |
-| "Tables are missing" | Run the SQL file in phpMyAdmin (Step 3) first |
-| "Database connection failed" | Wrong credentials, or user not assigned to database |
-| "Composer not found" | Contact Hostinger support — or use SSH: `cd ~/public_html/prescribeandco && composer install --no-dev` |
-| Blank page after setup | Open `storage/logs/laravel.log` in File Manager to see the error |
+| 403 on homepage | `.htaccess` or `index.php` not in `public_html/` root — check Step 1 |
+| 404 on setup.php | `setup.php` not in `public_html/` root |
+| "Tables are missing" | Run the SQL in phpMyAdmin (Step 2) first |
+| "Database connection failed" | Wrong credentials, or user not assigned to the database |
+| Blank page after setup | Open `prescribeandco/storage/logs/laravel.log` in File Manager |
 
 ---
 
-## Updating the site after changes
+## Updating after changes
 
-1. Upload the changed files via File Manager (overwrite existing ones)
-2. If config changed: delete `bootstrap/cache/config.php` in File Manager
-3. Refresh — done
+1. Upload changed files via File Manager (overwrite)
+2. Delete `prescribeandco/bootstrap/cache/config.php` in File Manager if you changed config
+3. Refresh the site
