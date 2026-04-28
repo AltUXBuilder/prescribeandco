@@ -11,7 +11,13 @@ class WebGuest
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->session()->has('user_id')) {
-            return redirect()->route('dashboard');
+            $redirect = match ($request->session()->get('user_role')) {
+                'ADMIN'      => route('admin.index'),
+                'PRESCRIBER' => route('prescriber.queue'),
+                'DISPENSER'  => route('dispenser.queue'),
+                default      => route('dashboard'),
+            };
+            return redirect($redirect);
         }
 
         return $next($request);

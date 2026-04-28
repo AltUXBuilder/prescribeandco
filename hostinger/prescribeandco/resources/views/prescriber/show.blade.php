@@ -190,8 +190,17 @@
       @if($rx->status->value === 'APPROVED')
         <div class="alert alert-success">This prescription has been approved and sent to the dispensing queue.</div>
       @endif
+      @if($rx->status->value === 'DISPENSING')
+        <div class="alert alert-info">This prescription is currently being dispensed.</div>
+      @endif
+      @if($rx->status->value === 'FULFILLED')
+        <div class="alert alert-success">This prescription has been fulfilled and dispatched to the patient.</div>
+      @endif
       @if($rx->status->value === 'REJECTED')
         <div class="alert alert-error"><strong>Rejected.</strong> {{ $rx->rejection_reason }}</div>
+      @endif
+      @if($rx->status->value === 'CANCELLED')
+        <div class="alert alert-warning">This prescription was cancelled by the patient.</div>
       @endif
 
       {{-- Prescription details if approved --}}

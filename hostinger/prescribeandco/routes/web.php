@@ -44,10 +44,10 @@ Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 // ── Consultation (start + submit are public; resume requires auth) ───────
 Route::get('/consultation/start',  [ConsultationWebController::class, 'start'])->name('consultation.start');
 Route::post('/consultation/submit', [ConsultationWebController::class, 'submit'])->name('consultation.submit');
-Route::middleware('web.auth')->get('/consultation/resume', [ConsultationWebController::class, 'resume'])->name('consultation.resume');
+Route::middleware(['web.auth', 'web.role:CUSTOMER'])->get('/consultation/resume', [ConsultationWebController::class, 'resume'])->name('consultation.resume');
 
 // ── Customer dashboard ───────────────────────────────────────────────────
-Route::middleware('web.auth')->group(function () {
+Route::middleware(['web.auth', 'web.role:CUSTOMER'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/prescriptions/{id}', [DashboardController::class, 'prescription'])->name('dashboard.prescription');
     Route::post('/dashboard/prescriptions/{id}/cancel', [DashboardController::class, 'cancel'])->name('prescription.cancel');

@@ -94,6 +94,32 @@
       @endif
     </div>
 
+    {{-- Recently reviewed --}}
+    @if(isset($completed) && $completed->isNotEmpty())
+    <div style="margin-top:2.5rem">
+      <div class="section-header" style="margin-bottom:1rem">
+        <h2 style="font-size:1.1rem">Recently reviewed by me <span style="background:var(--lavender-soft);color:var(--lavender-deep);font-size:.75rem;padding:.15rem .5rem;border-radius:99px;margin-left:.5rem">{{ $completed->total() }}</span></h2>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <table class="rx-table">
+          <thead><tr><th>Patient</th><th>Treatment</th><th>Status</th><th>Last update</th><th></th></tr></thead>
+          <tbody>
+            @foreach($completed as $rx)
+            <tr>
+              <td><strong>{{ $rx->customer->full_name ?? '—' }}</strong><br><span class="text-muted text-sm">{{ $rx->customer->email ?? '' }}</span></td>
+              <td>{{ $rx->product->name ?? '—' }}</td>
+              <td>{!! statusBadge($rx->status->value) !!}</td>
+              <td class="text-muted text-sm">{{ $rx->updated_at?->format('d M Y H:i') ?? '—' }}</td>
+              <td><a href="{{ route('prescriber.show', $rx->id) }}" class="btn btn-secondary btn-sm">View</a></td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:1rem">{{ $completed->links('components.pagination') }}</div>
+    </div>
+    @endif
+
   </div>
 </div>
 @endsection
