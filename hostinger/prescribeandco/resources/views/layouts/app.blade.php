@@ -32,13 +32,13 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
           </button>
           <div class="nav-dropdown-menu">
-            <a href="{{ route('condition.show', 'weight-loss') }}" class="dropdown-item">
+            <a href="{{ route('condition.show', 'weight-loss') }}#mens" class="dropdown-item">
               <span class="dropdown-item-icon">⚖️</span>
               <div><div class="dropdown-item-text">Weight Loss</div><div class="dropdown-item-desc">Semaglutide, Wegovy, Mounjaro</div></div>
             </a>
-            <a href="{{ route('condition.show', 'hair-loss') }}" class="dropdown-item">
+            <a href="{{ route('condition.show', 'hair-loss') }}#mens" class="dropdown-item">
               <span class="dropdown-item-icon">🧴</span>
-              <div><div class="dropdown-item-text">Hair Loss</div><div class="dropdown-item-desc">Finasteride, Minoxidil</div></div>
+              <div><div class="dropdown-item-text">Hair Loss</div><div class="dropdown-item-desc">Finasteride, Dutasteride, Minoxidil</div></div>
             </a>
             <a href="{{ route('condition.show', 'erectile-dysfunction') }}" class="dropdown-item">
               <span class="dropdown-item-icon">💊</span>
@@ -54,21 +54,21 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
           </button>
           <div class="nav-dropdown-menu">
-            <a href="{{ route('condition.show', 'weight-loss') }}" class="dropdown-item">
+            <a href="{{ route('condition.show', 'weight-loss') }}#womens" class="dropdown-item">
               <span class="dropdown-item-icon">⚖️</span>
               <div><div class="dropdown-item-text">Weight Loss</div><div class="dropdown-item-desc">Semaglutide, Wegovy, Mounjaro</div></div>
             </a>
-            <a href="{{ route('condition.show', 'hair-loss') }}" class="dropdown-item">
+            <a href="{{ route('condition.show', 'hair-loss') }}#womens" class="dropdown-item">
               <span class="dropdown-item-icon">🧴</span>
-              <div><div class="dropdown-item-text">Hair Loss</div><div class="dropdown-item-desc">Finasteride, Minoxidil</div></div>
+              <div><div class="dropdown-item-text">Hair Loss</div><div class="dropdown-item-desc">Minoxidil & personalised plans</div></div>
             </a>
             <a href="{{ route('condition.show', 'skin-health') }}" class="dropdown-item">
               <span class="dropdown-item-icon">✨</span>
-              <div><div class="dropdown-item-text">Skin Health</div><div class="dropdown-item-desc">Tretinoin & targeted skincare</div></div>
+              <div><div class="dropdown-item-text">Skin Health</div><div class="dropdown-item-desc">Tretinoin, Azelaic Acid & more</div></div>
             </a>
-            <a href="{{ route('condition.show', 'mental-wellbeing') }}" class="dropdown-item">
-              <span class="dropdown-item-icon">🧠</span>
-              <div><div class="dropdown-item-text">Mental Wellbeing</div><div class="dropdown-item-desc">Anxiety, mood & stress support</div></div>
+            <a href="{{ route('condition.show', 'digestive-health') }}" class="dropdown-item">
+              <span class="dropdown-item-icon">🌿</span>
+              <div><div class="dropdown-item-text">Digestive Health</div><div class="dropdown-item-desc">IBS, acid reflux & bloating</div></div>
             </a>
           </div>
         </div>
@@ -101,11 +101,15 @@
 
   {{-- Mobile nav --}}
   <div class="mobile-nav" id="mobileNav">
-    <a href="{{ route('condition.show', 'weight-loss') }}">⚖️ Weight Loss</a>
-    <a href="{{ route('condition.show', 'hair-loss') }}">🧴 Hair Loss</a>
+    <p style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;padding:.5rem 1rem 0">Men's Health</p>
+    <a href="{{ route('condition.show', 'weight-loss') }}#mens">⚖️ Weight Loss</a>
+    <a href="{{ route('condition.show', 'hair-loss') }}#mens">🧴 Hair Loss</a>
     <a href="{{ route('condition.show', 'erectile-dysfunction') }}">💊 Erectile Dysfunction</a>
+    <p style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;padding:.5rem 1rem 0">Women's Health</p>
+    <a href="{{ route('condition.show', 'weight-loss') }}#womens">⚖️ Weight Loss</a>
+    <a href="{{ route('condition.show', 'hair-loss') }}#womens">🧴 Hair Loss</a>
     <a href="{{ route('condition.show', 'skin-health') }}">✨ Skin Health</a>
-    <a href="{{ route('condition.show', 'mental-wellbeing') }}">🧠 Mental Wellbeing</a>
+    <a href="{{ route('condition.show', 'digestive-health') }}">🌿 Digestive Health</a>
     <a href="{{ route('products.index') }}">All Treatments</a>
     @if(session('user_id'))
       <a href="{{ route('dashboard') }}">My Account</a>
@@ -145,6 +149,7 @@
         <a href="{{ route('condition.show', 'hair-loss') }}">Hair Loss</a>
         <a href="{{ route('condition.show', 'erectile-dysfunction') }}">Erectile Dysfunction</a>
         <a href="{{ route('condition.show', 'skin-health') }}">Skin Health</a>
+        <a href="{{ route('condition.show', 'digestive-health') }}">Digestive Health</a>
       </div>
       <div class="footer-col">
         <h4>Account</h4>

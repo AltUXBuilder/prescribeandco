@@ -719,6 +719,58 @@ VALUES
 );
 
 -- =============================================================================
+-- DIGESTIVE HEALTH CATEGORY + PRODUCTS
+-- =============================================================================
+
+INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `sort_order`, `parent_id`, `created_at`, `updated_at`) VALUES
+  ('cat-dige0-00000-0000-0000-000000000034', 'Digestive Health', 'digestive-health', 5, NULL, NOW(), NOW());
+
+INSERT IGNORE INTO `products`
+  (`id`, `category_id`, `questionnaire_id`, `name`, `slug`, `description`,
+   `bnf_code`, `medicine_type`, `requires_prescription`, `requires_questionnaire`,
+   `price_pence`, `status`, `stock_count`, `created_at`, `updated_at`)
+VALUES
+(
+  'prd-mebe0-00000-0000-0000-000000000050',
+  'cat-dige0-00000-0000-0000-000000000034',
+  NULL,
+  'Mebeverine 135mg Tablets (IBS)',
+  'mebeverine-135mg',
+  'Mebeverine 135mg is an antispasmodic used to relieve the symptoms of irritable bowel syndrome (IBS), including cramping, bloating, and abdominal pain. Taken three times daily before meals. Prescription required.',
+  '0102010B0AAAAAA',
+  'POM',
+  1, 1,
+  1800,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-ome0-00000-0000-0000-000000000051',
+  'cat-dige0-00000-0000-0000-000000000034',
+  NULL,
+  'Omeprazole 20mg Capsules (Acid Reflux)',
+  'omeprazole-20mg',
+  'Omeprazole 20mg is a proton pump inhibitor (PPI) used to treat acid reflux, heartburn, and gastro-oesophageal reflux disease (GORD). Reduces the amount of acid the stomach produces. Taken once daily before food. Prescription required.',
+  '0103050E0AAAAAA',
+  'POM',
+  1, 1,
+  1500,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-buse0-00000-0000-0000-000000000052',
+  'cat-dige0-00000-0000-0000-000000000034',
+  NULL,
+  'Buscopan (Hyoscine) 10mg Tablets',
+  'buscopan-10mg',
+  'Hyoscine butylbromide (Buscopan) 10mg relieves the pain and discomfort of stomach cramps and IBS. It works by relaxing the muscle spasms in the gut. Prescription-strength dose available following consultation.',
+  '0102010A0BCAAAA',
+  'POM',
+  1, 1,
+  1200,
+  'ACTIVE', NULL, NOW(), NOW()
+);
+
+-- =============================================================================
 -- ADD YOUR OWN QUERIES BELOW THIS LINE
 -- Each statement is independent — you can run just the new lines.
 -- Tips:
