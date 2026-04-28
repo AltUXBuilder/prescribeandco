@@ -28,33 +28,23 @@ import { RbacDemoController } from './modules/auth/rbac-demo.controller';
 
 @Module({
   imports: [
-    // ── Config (globally available via ConfigService) ─────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, dbConfig, jwtConfig, throttleConfig, storageConfig],
       envFilePath: '.env',
     }),
-
-    // ── Rate limiting — 20 requests per minute per IP ─────────────────────
     ThrottlerModule.forRootAsync({
       inject: [],
       useFactory: () => ({
-        throttlers: [
-          {
-            ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
-            limit: parseInt(process.env.THROTTLE_LIMIT ?? '20', 10),
-          },
-        ],
+        throttlers: [{
+          ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
+          limit: parseInt(process.env.THROTTLE_LIMIT ?? '20', 10),
+        }],
       }),
     }),
-
-    // ── Database ──────────────────────────────────────────────────────────
     DatabaseModule,
-
-    // ── Feature modules ───────────────────────────────────────────────────
     UsersModule,
     AuthModule,
-
     ProductsModule,
     QuestionnairesModule,
     PrescriptionsModule,
@@ -63,38 +53,13 @@ import { RbacDemoController } from './modules/auth/rbac-demo.controller';
     PrescriberModule,
     DispenserModule,
     PaymentsModule,
-
-    // Future modules:
-    // PaymentsModule
-    // NotificationsModule
   ],
-
   controllers: [RbacDemoController],
-
   providers: [
-    // ── Global audit interceptor — captures IP/user-agent into AsyncLocalStorage ─
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
-    },
-
-    // ── Global rate limiter guard ─────────────────────────────────────────
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-
-    // ── Global JWT guard (runs first — @Public() bypasses it) ────────────
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-
-    // ── Global roles guard (runs after JWT validates the user) ────────────
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}
