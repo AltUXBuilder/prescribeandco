@@ -147,8 +147,14 @@ if (!file_exists($idx)) {
 }
 ?>
 
+<h2>Tools</h2>
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+  <a href="configure.php" style="padding:.5rem 1rem;background:#7B6BAE;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600">Edit .env / DB settings</a>
+  <a href="setup.php" style="padding:.5rem 1rem;background:#f0edf8;color:#7B6BAE;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600">Install Composer</a>
+</div>
+
 <p style="margin-top:2rem;font-size:.8rem;color:#999">
-  Delete this file once your site is working: <strong>public_html/check.php</strong>
+  Delete <strong>check.php</strong>, <strong>configure.php</strong>, and <strong>setup.php</strong> from public_html/ once your site is working.
 </p>
 </body>
 </html>
