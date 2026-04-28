@@ -186,6 +186,9 @@ function updateVisibility() {
     const show = evaluateCondition(rule, answers);
     block.dataset.hidden = show ? 'false' : 'true';
     block.style.display = show ? '' : 'none';
+    block.querySelectorAll('input, select, textarea').forEach(field => {
+      field.disabled = !show;
+    });
     if (show) visible++;
   });
 
