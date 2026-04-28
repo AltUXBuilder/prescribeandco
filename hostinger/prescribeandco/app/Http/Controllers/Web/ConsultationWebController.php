@@ -56,8 +56,8 @@ class ConsultationWebController extends Controller
     public function submit(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'product_id'       => ['required', 'uuid', 'exists:products,id'],
-            'questionnaire_id' => ['required', 'uuid', 'exists:questionnaires,id'],
+            'product_id'       => ['required', 'exists:products,id'],
+            'questionnaire_id' => ['required', 'exists:questionnaires,id'],
             'answers'          => ['required', 'array'],
         ]);
 

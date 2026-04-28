@@ -31,7 +31,19 @@ class PrescriberWebController extends Controller
             ->orderBy('reviewed_at')
             ->paginate(20, ['*'], 'mine');
 
-        return view('prescriber.queue', compact('pending', 'mine'));
+        $completed = PrescriptionRequest::with(['customer', 'product'])
+            ->where('prescriber_id', session('user_id'))
+            ->whereIn('status', [
+                PrescriptionStatus::APPROVED,
+                PrescriptionStatus::DISPENSING,
+                PrescriptionStatus::FULFILLED,
+                PrescriptionStatus::REJECTED,
+                PrescriptionStatus::CANCELLED,
+            ])
+            ->orderByDesc('updated_at')
+            ->paginate(20, ['*'], 'completed');
+
+        return view('prescriber.queue', compact('pending', 'mine', 'completed'));
     }
 
     // ── Prescription detail ──────────────────────────────────────────────────
@@ -43,9 +55,20 @@ class PrescriberWebController extends Controller
                 PrescriptionStatus::SUBMITTED,
                 PrescriptionStatus::UNDER_REVIEW,
                 PrescriptionStatus::APPROVED,
+                PrescriptionStatus::DISPENSING,
+                PrescriptionStatus::FULFILLED,
                 PrescriptionStatus::REJECTED,
+                PrescriptionStatus::CANCELLED,
             ])
             ->findOrFail($id);
+
+        if (
+            $rx->status === PrescriptionStatus::UNDER_REVIEW
+            && $rx->prescriber_id
+            && $rx->prescriber_id !== session('user_id')
+        ) {
+            abort(403, 'This prescription is currently under review by another prescriber.');
+        }
 
         $orderHistory = PrescriptionRequest::where('customer_id', $rx->customer_id)
             ->where('id', '!=', $rx->id)
