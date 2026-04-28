@@ -1,3 +1,11 @@
+# ============================================================
+# RENAME THIS FILE TO: .htaccess  (add the dot, remove .txt)
+# Then upload it to public_html/
+#
+# NOTE: setup.php creates this file automatically — you only
+# need to do this manually if setup.php has already run.
+# ============================================================
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

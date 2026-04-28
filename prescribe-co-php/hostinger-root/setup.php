@@ -117,6 +117,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Write .htaccess (hidden file — often missing from ZIP downloads)
+    if (empty($errors)) {
+        $htaccess = <<<'HTACCESS'
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+HTACCESS;
+        $htaccessPath = __DIR__ . '/.htaccess';
+        if (!file_exists($htaccessPath)) {
+            file_put_contents($htaccessPath, $htaccess);
+        }
+        $log[] = '&#10003; .htaccess written.';
+    }
+
     // Set storage permissions
     if (empty($errors)) {
         foreach ([
