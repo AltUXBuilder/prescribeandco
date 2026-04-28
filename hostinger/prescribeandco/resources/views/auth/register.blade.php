@@ -61,9 +61,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="date_of_birth">Date of birth <span class="text-muted" style="text-transform:none">(optional)</span></label>
-          <input class="form-input" type="date" id="date_of_birth" name="date_of_birth"
-                 value="{{ old('date_of_birth') }}">
+          <label class="form-label" for="date_of_birth">Date of birth</label>
+          <input class="form-input @error('date_of_birth') error @enderror" type="date" id="date_of_birth" name="date_of_birth"
+                 value="{{ old('date_of_birth') }}" required>
         </div>
 
         <p class="text-sm text-muted">

@@ -77,7 +77,7 @@ class AuthWebController extends Controller
             'last_name'     => ['required', 'string', 'max:100'],
             'email'         => ['required', 'email', 'max:254', 'unique:users,email'],
             'password'      => ['required', 'string', 'min:10', 'confirmed'],
-            'date_of_birth' => ['nullable', 'date'],
+            'date_of_birth' => ['required', 'date'],
         ]);
 
         $user = User::create([
