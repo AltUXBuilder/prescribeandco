@@ -34,16 +34,10 @@
           <p class="text-muted text-sm" style="margin-bottom:1.5rem">per treatment cycle</p>
 
           @if($product->requires_prescription)
-            @if(session('user_id'))
-              <a href="{{ route('consultation.start', ['product' => $product->slug]) }}"
-                 class="btn btn-primary btn-full" style="margin-bottom:.75rem">
-                Start consultation
-              </a>
-            @else
-              <a href="{{ route('register') }}" class="btn btn-primary btn-full" style="margin-bottom:.75rem">
-                Create account to start
-              </a>
-            @endif
+            <a href="{{ route('consultation.start', ['product' => $product->slug]) }}"
+               class="btn btn-primary btn-full" style="margin-bottom:.75rem">
+              Start consultation
+            </a>
             <p class="text-sm text-muted text-center">Prescription required. A prescriber will review your consultation.</p>
           @else
             <a href="#" class="btn btn-primary btn-full">Add to basket</a>

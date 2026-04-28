@@ -91,8 +91,12 @@ class ConsultationWebController extends Controller
         }
 
         // Validate answers and compute eligibility via server-side schema rules
-        $questionnaire  = \App\Models\Questionnaire::findOrFail($data['questionnaire_id']);
+        $questionnaire    = \App\Models\Questionnaire::findOrFail($data['questionnaire_id']);
         $validationResult = $this->validator->validate($questionnaire->schema, $answers);
+
+        if (!empty($validationResult['errors'])) {
+            return back()->withErrors(['answers' => $validationResult['errors']])->withInput();
+        }
 
         // Save questionnaire response with eligibility pre-computed
         $response = QuestionnaireResponse::create([

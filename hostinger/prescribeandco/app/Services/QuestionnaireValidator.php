@@ -2,14 +2,12 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Exceptions\HttpResponseException;
-
 class QuestionnaireValidator
 {
     /**
      * Validates customer-submitted answers against the questionnaire schema.
-     * Returns [ 'is_eligible' => bool, 'ineligibility_reasons' => string[] ]
-     * Throws 422 on structural/type errors.
+     * Returns [ 'is_eligible' => bool, 'ineligibility_reasons' => string[], 'errors' => string[] ]
+     * Answers arrive as strings from HTTP form submissions.
      */
     public function validate(array $schema, array $answers): array
     {
@@ -43,8 +41,9 @@ class QuestionnaireValidator
 
             switch ($q['type']) {
                 case 'BOOLEAN':
-                    if (!is_bool($answer)) {
-                        $errors[] = "Question \"{$q['text']}\" must be true or false";
+                    // Forms submit '1' / '0' as strings
+                    if (!in_array((string) $answer, ['0', '1'], true)) {
+                        $errors[] = "Question \"{$q['text']}\" must be Yes or No";
                     }
                     break;
 
@@ -95,15 +94,10 @@ class QuestionnaireValidator
             }
         }
 
-        if (!empty($errors)) {
-            throw new HttpResponseException(
-                response()->json(['message' => 'Questionnaire validation failed', 'errors' => $errors], 422)
-            );
-        }
-
         return [
-            'is_eligible'           => empty($ineligibilityReasons),
+            'is_eligible'           => empty($ineligibilityReasons) && empty($errors),
             'ineligibility_reasons' => $ineligibilityReasons,
+            'errors'                => $errors,
         ];
     }
 
