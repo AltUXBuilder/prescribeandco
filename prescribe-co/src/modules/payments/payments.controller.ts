@@ -1,31 +1,37 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
+  RawBodyRequest,
+  Req,
+  UnauthorizedException,
   UseInterceptors,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
+import * as crypto from 'crypto';
 import { PaymentsService } from './payments.service';
 import { PaymentResponseDto, PaymentWebhookDto, RefundPaymentDto } from './dto/payments.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '../../common/enums/role.enum';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly config: ConfigService,
+  ) {}
 
-  /**
-   * GET /payments/:id
-   * ADMIN — view any payment record.
-   */
   @Get(':id')
   @Roles(Role.ADMIN)
   async findById(@Param('id', ParseUUIDPipe) id: string): Promise<PaymentResponseDto> {
@@ -33,10 +39,6 @@ export class PaymentsController {
     return this.paymentsService.toResponseDto(payment);
   }
 
-  /**
-   * GET /payments/prescription/:prescriptionId
-   * ADMIN — fetch the payment for a specific prescription.
-   */
   @Get('prescription/:prescriptionId')
   @Roles(Role.ADMIN)
   async findByPrescription(
@@ -46,10 +48,6 @@ export class PaymentsController {
     return payment ? this.paymentsService.toResponseDto(payment) : null;
   }
 
-  /**
-   * POST /payments/:id/refund
-   * ADMIN only — issue a full or partial refund after capture.
-   */
   @Post(':id/refund')
   @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -63,15 +61,40 @@ export class PaymentsController {
 
   /**
    * POST /payments/webhook
-   * Public (no JWT) — inbound from the payment provider.
-   * In production this route must additionally verify a provider-signed secret header.
-   * @Public() bypasses JwtAuthGuard; route-level IP allowlisting should be applied
-   * in the infrastructure layer (nginx / API gateway).
+   * Verifies the Stripe-Signature header using HMAC-SHA256 before processing.
    */
   @Public()
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
-  async webhook(@Body() dto: PaymentWebhookDto): Promise<void> {
+  async webhook(
+    @Req() req: RawBodyRequest<Request>,
+    @Headers('stripe-signature') signature: string,
+    @Body() dto: PaymentWebhookDto,
+  ): Promise<void> {
+    const secret = this.config.get<string>('payments.stripeWebhookSecret');
+    if (!secret) throw new BadRequestException('Webhook secret not configured');
+    if (!signature) throw new UnauthorizedException('Missing Stripe-Signature header');
+    this.verifyStripeSignature(req.rawBody!, signature, secret);
     await this.paymentsService.handleWebhook(dto);
+  }
+
+  private verifyStripeSignature(rawBody: Buffer, signature: string, secret: string): void {
+    const parts = Object.fromEntries(signature.split(',').map((p) => p.split('=')));
+    const timestamp = parts['t'];
+    const v1 = parts['v1'];
+    if (!timestamp || !v1) throw new UnauthorizedException('Invalid Stripe-Signature format');
+    const tolerance = 5 * 60;
+    if (Math.abs(Date.now() / 1000 - parseInt(timestamp, 10)) > tolerance) {
+      throw new UnauthorizedException('Webhook timestamp too old');
+    }
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(`${timestamp}.${rawBody.toString('utf8')}`)
+      .digest('hex');
+    const expectedBuf = Buffer.from(expected, 'hex');
+    const receivedBuf = Buffer.from(v1, 'hex');
+    if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
+      throw new UnauthorizedException('Invalid webhook signature');
+    }
   }
 }
