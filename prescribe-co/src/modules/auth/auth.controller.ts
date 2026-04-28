@@ -10,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
@@ -26,13 +27,8 @@ import { plainToInstance } from 'class-transformer';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // ── Register ───────────────────────────────────────────────────────────────
-
-  /**
-   * POST /auth/register
-   * Public — creates a CUSTOMER account.
-   */
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   async register(
     @Body() dto: RegisterDto,
@@ -40,17 +36,11 @@ export class AuthController {
     @Req() req: Request,
   ): Promise<TokensResponseDto> {
     const tokens = await this.authService.registerCustomer(dto);
-    return plainToInstance(TokensResponseDto, tokens, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(TokensResponseDto, tokens, { excludeExtraneousValues: true });
   }
 
-  /**
-   * POST /auth/register/prescriber
-   * Public — creates a PRESCRIBER account (requires GPhC number).
-   * In production, route should sit behind an admin invite-token check.
-   */
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register/prescriber')
   async registerPrescriber(
     @Body() dto: RegisterPrescriberDto,
@@ -59,18 +49,11 @@ export class AuthController {
   ): Promise<TokensResponseDto> {
     const userAgent = req.headers['user-agent'];
     const tokens = await this.authService.registerPrescriber(dto, ip, userAgent);
-    return plainToInstance(TokensResponseDto, tokens, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(TokensResponseDto, tokens, { excludeExtraneousValues: true });
   }
 
-  // ── Login ──────────────────────────────────────────────────────────────────
-
-  /**
-   * POST /auth/login
-   * Public — returns access + refresh tokens on valid credentials.
-   */
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -79,35 +62,15 @@ export class AuthController {
     @Req() req: Request,
   ) {
     const userAgent = req.headers['user-agent'];
-    const { user, tokens } = await this.authService.login(
-      dto.email,
-      dto.password,
-      ip,
-      userAgent,
-    );
-
+    const { user, tokens } = await this.authService.login(dto.email, dto.password, ip, userAgent);
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-      ...plainToInstance(TokensResponseDto, tokens, {
-        excludeExtraneousValues: true,
-      }),
+      user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
+      ...plainToInstance(TokensResponseDto, tokens, { excludeExtraneousValues: true }),
     };
   }
 
-  // ── Refresh ────────────────────────────────────────────────────────────────
-
-  /**
-   * POST /auth/refresh
-   * Protected by jwt-refresh strategy.
-   * Rotates tokens: revokes the current refresh token and issues a new pair.
-   */
-  @Public() // JwtAuthGuard skipped — passport-jwt-refresh handles it
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -117,23 +80,10 @@ export class AuthController {
     @Req() req: Request,
   ): Promise<TokensResponseDto> {
     const userAgent = req.headers['user-agent'];
-    const tokens = await this.authService.refresh(
-      payload.user,
-      payload.tokenRecord,
-      ip,
-      userAgent,
-    );
-    return plainToInstance(TokensResponseDto, tokens, {
-      excludeExtraneousValues: true,
-    });
+    const tokens = await this.authService.refresh(payload.user, payload.tokenRecord, ip, userAgent);
+    return plainToInstance(TokensResponseDto, tokens, { excludeExtraneousValues: true });
   }
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
-
-  /**
-   * POST /auth/logout
-   * Authenticated — revokes the current device's refresh token.
-   */
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
@@ -143,10 +93,6 @@ export class AuthController {
     await this.authService.logout(dto.refreshToken, userId);
   }
 
-  /**
-   * POST /auth/logout/all
-   * Authenticated — revokes all refresh tokens for the user (all devices).
-   */
   @Post('logout/all')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logoutAll(@CurrentUser('id') userId: string): Promise<void> {
