@@ -73,11 +73,11 @@ class AuthWebController extends Controller
     public function register(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-            'email'      => ['required', 'email', 'max:254', 'unique:users,email'],
-            'password'   => ['required', 'string', 'min:10', 'confirmed'],
-            'dob'        => ['required', 'date', 'before:-18 years'],
+            'first_name'    => ['required', 'string', 'max:100'],
+            'last_name'     => ['required', 'string', 'max:100'],
+            'email'         => ['required', 'email', 'max:254', 'unique:users,email'],
+            'password'      => ['required', 'string', 'min:10', 'confirmed'],
+            'date_of_birth' => ['nullable', 'date'],
         ]);
 
         $user = User::create([
@@ -85,7 +85,7 @@ class AuthWebController extends Controller
             'password_hash' => Hash::make($data['password'], ['rounds' => 12]),
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'date_of_birth' => $data['dob'],
+            'date_of_birth' => $data['date_of_birth'] ?? null,
             'role'          => 'CUSTOMER',
             'is_active'     => true,
             'is_verified'   => false,
