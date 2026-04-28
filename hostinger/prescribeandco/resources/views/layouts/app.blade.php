@@ -66,9 +66,9 @@
               <span class="dropdown-item-icon">✨</span>
               <div><div class="dropdown-item-text">Skin Health</div><div class="dropdown-item-desc">Tretinoin & targeted skincare</div></div>
             </a>
-            <a href="{{ route('condition.show', 'digestive-health') }}" class="dropdown-item">
-              <span class="dropdown-item-icon">🌿</span>
-              <div><div class="dropdown-item-text">Digestive Health</div><div class="dropdown-item-desc">Gut health & digestive support</div></div>
+            <a href="{{ route('condition.show', 'mental-wellbeing') }}" class="dropdown-item">
+              <span class="dropdown-item-icon">🧠</span>
+              <div><div class="dropdown-item-text">Mental Wellbeing</div><div class="dropdown-item-desc">Anxiety, mood & stress support</div></div>
             </a>
           </div>
         </div>
@@ -105,7 +105,7 @@
     <a href="{{ route('condition.show', 'hair-loss') }}">🧴 Hair Loss</a>
     <a href="{{ route('condition.show', 'erectile-dysfunction') }}">💊 Erectile Dysfunction</a>
     <a href="{{ route('condition.show', 'skin-health') }}">✨ Skin Health</a>
-    <a href="{{ route('condition.show', 'digestive-health') }}">🌿 Digestive Health</a>
+    <a href="{{ route('condition.show', 'mental-wellbeing') }}">🧠 Mental Wellbeing</a>
     <a href="{{ route('products.index') }}">All Treatments</a>
     @if(session('user_id'))
       <a href="{{ route('dashboard') }}">My Account</a>

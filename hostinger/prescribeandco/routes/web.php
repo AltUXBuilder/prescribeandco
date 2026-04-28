@@ -23,7 +23,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/treatments', [ProductWebController::class, 'index'])->name('products.index');
 Route::get('/treatments/{slug}', [ProductWebController::class, 'show'])->name('products.show');
 
-Route::get('/conditions/{slug}', [ConditionWebController::class, 'show'])->name('conditions.show');
+Route::get('/conditions/{slug}', [ConditionWebController::class, 'show'])->name('condition.show');
 
 // ── Auth (guest only) ───────────────────────────────────────────────────
 Route::middleware('web.guest')->group(function () {

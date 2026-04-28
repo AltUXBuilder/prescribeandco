@@ -530,6 +530,195 @@ VALUES
 );
 
 -- =============================================================================
+-- ADDITIONAL CATEGORIES
+-- =============================================================================
+
+INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `sort_order`, `parent_id`, `created_at`, `updated_at`) VALUES
+  ('cat-wlos0-00000-0000-0000-000000000030', 'Weight Loss',      'weight-loss',     1, NULL, NOW(), NOW()),
+  ('cat-skin0-00000-0000-0000-000000000031', 'Skin Health',      'skin-health',     2, NULL, NOW(), NOW()),
+  ('cat-mntl-00000-0000-0000-000000000032', 'Mental Wellbeing', 'mental-wellbeing', 3, NULL, NOW(), NOW()),
+  ('cat-sxhl-00000-0000-0000-000000000033', 'Sexual Health',    'sexual-health',    4, NULL, NOW(), NOW());
+
+-- =============================================================================
+-- ADDITIONAL PRODUCTS
+-- =============================================================================
+
+-- ── Weight Loss ──────────────────────────────────────────────────────────────
+
+INSERT IGNORE INTO `products`
+  (`id`, `category_id`, `questionnaire_id`, `name`, `slug`, `description`,
+   `bnf_code`, `medicine_type`, `requires_prescription`, `requires_questionnaire`,
+   `price_pence`, `status`, `stock_count`, `created_at`, `updated_at`)
+VALUES
+(
+  'prd-sema0-00000-0000-0000-000000000010',
+  'cat-wlos0-00000-0000-0000-000000000030',
+  NULL,
+  'Semaglutide Injection (Wegovy)',
+  'semaglutide-injection',
+  'Semaglutide is a GLP-1 receptor agonist approved for chronic weight management in adults with a BMI of 30+ (or 27+ with a weight-related condition). Administered as a once-weekly injection, it helps reduce appetite and caloric intake. Our prescribers review your health history before approving treatment.',
+  '0601023AD',
+  'POM',
+  1, 1,
+  19900,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-tirz0-00000-0000-0000-000000000011',
+  'cat-wlos0-00000-0000-0000-000000000030',
+  NULL,
+  'Tirzepatide (Mounjaro)',
+  'tirzepatide-mounjaro',
+  'Tirzepatide is a dual GIP and GLP-1 receptor agonist for long-term weight management. Clinical trials show up to 22% body weight reduction. Once-weekly self-injection, reviewed and prescribed by a UK-registered prescriber.',
+  '0601023AJ',
+  'POM',
+  1, 1,
+  22900,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-orli0-00000-0000-0000-000000000012',
+  'cat-wlos0-00000-0000-0000-000000000030',
+  NULL,
+  'Orlistat 120mg Capsules (Xenical)',
+  'orlistat-120mg',
+  'Orlistat 120mg (Xenical) prevents approximately one third of dietary fat from being absorbed. Suitable for adults with a BMI of 28+. Taken with meals three times daily. Prescription required.',
+  '0401020G0BCAAAA',
+  'POM',
+  1, 1,
+  4900,
+  'ACTIVE', NULL, NOW(), NOW()
+);
+
+-- ── Hair Loss (extra products) ───────────────────────────────────────────────
+
+INSERT IGNORE INTO `products`
+  (`id`, `category_id`, `questionnaire_id`, `name`, `slug`, `description`,
+   `bnf_code`, `medicine_type`, `requires_prescription`, `requires_questionnaire`,
+   `price_pence`, `status`, `stock_count`, `created_at`, `updated_at`)
+VALUES
+(
+  'prd-mino0-00000-0000-0000-000000000020',
+  'cat-hair0-00000-0000-0000-000000000011',
+  NULL,
+  'Minoxidil 5% Solution',
+  'minoxidil-5-percent',
+  'Minoxidil 5% topical solution is applied directly to the scalp to stimulate hair growth and slow hair loss in male pattern baldness. Applied twice daily. Available as a pharmacy medicine.',
+  '1303020A0AAABAB',
+  'P',
+  0, 0,
+  1800,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-duta0-00000-0000-0000-000000000021',
+  'cat-hair0-00000-0000-0000-000000000011',
+  NULL,
+  'Dutasteride 0.5mg Capsules',
+  'dutasteride-0-5mg',
+  'Dutasteride inhibits both type I and type II 5-alpha reductase, giving greater DHT suppression than Finasteride. Used off-label for male pattern hair loss when Finasteride has been insufficient. Prescription required.',
+  '0604011E0AAAAAA',
+  'POM',
+  1, 1,
+  3200,
+  'ACTIVE', NULL, NOW(), NOW()
+);
+
+-- ── Erectile Dysfunction (extra products) ────────────────────────────────────
+
+INSERT IGNORE INTO `products`
+  (`id`, `category_id`, `questionnaire_id`, `name`, `slug`, `description`,
+   `bnf_code`, `medicine_type`, `requires_prescription`, `requires_questionnaire`,
+   `price_pence`, `status`, `stock_count`, `created_at`, `updated_at`)
+VALUES
+(
+  'prd-tada0-00000-0000-0000-000000000030',
+  'cat-ed000-00000-0000-0000-000000000010',
+  NULL,
+  'Tadalafil 10mg Tablets',
+  'tadalafil-10mg',
+  'Tadalafil 10mg is a long-acting PDE5 inhibitor for erectile dysfunction, effective for up to 36 hours. Taken as needed, approximately 30 minutes before sexual activity. Prescription required.',
+  '0701022B0AAAAAA',
+  'POM',
+  1, 1,
+  2200,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-tad5-00000-0000-0000-000000000031',
+  'cat-ed000-00000-0000-0000-000000000010',
+  NULL,
+  'Tadalafil 5mg Daily Tablets',
+  'tadalafil-5mg-daily',
+  'Tadalafil 5mg taken once daily provides continuous readiness for sexual activity without needing to plan ahead. Suitable for men who prefer a spontaneous approach. Prescription required.',
+  '0701022B0AAACAC',
+  'POM',
+  1, 1,
+  2800,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-sild100-0000-0000-0000-000000000032',
+  'cat-ed000-00000-0000-0000-000000000010',
+  NULL,
+  'Sildenafil 100mg Tablets',
+  'sildenafil-100mg',
+  'Sildenafil 100mg is the highest standard dose of this PDE5 inhibitor, suitable for men who have not had sufficient response at 50mg. Taken 30–60 minutes before sexual activity. Prescription required.',
+  '0701022A0AAABAB',
+  'POM',
+  1, 1,
+  3200,
+  'ACTIVE', NULL, NOW(), NOW()
+);
+
+-- ── Skin Health ───────────────────────────────────────────────────────────────
+
+INSERT IGNORE INTO `products`
+  (`id`, `category_id`, `questionnaire_id`, `name`, `slug`, `description`,
+   `bnf_code`, `medicine_type`, `requires_prescription`, `requires_questionnaire`,
+   `price_pence`, `status`, `stock_count`, `created_at`, `updated_at`)
+VALUES
+(
+  'prd-tret0-00000-0000-0000-000000000040',
+  'cat-skin0-00000-0000-0000-000000000031',
+  NULL,
+  'Tretinoin 0.025% Cream',
+  'tretinoin-0-025-cream',
+  'Tretinoin (a retinoid derived from vitamin A) is prescribed for acne and photoageing. It promotes skin cell turnover and collagen production. Applied topically at night. Prescription required — our prescribers assess suitability before issuing.',
+  '1302010AB',
+  'POM',
+  1, 1,
+  3500,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-azel0-00000-0000-0000-000000000041',
+  'cat-skin0-00000-0000-0000-000000000031',
+  NULL,
+  'Azelaic Acid 20% Cream (Skinoren)',
+  'azelaic-acid-20-cream',
+  'Azelaic acid 20% is used for the treatment of mild to moderate acne and rosacea. It reduces the growth of acne-causing bacteria and helps unclog pores. Applied twice daily. Prescription required.',
+  '1302010AA',
+  'POM',
+  1, 1,
+  2800,
+  'ACTIVE', NULL, NOW(), NOW()
+),
+(
+  'prd-clind-00000-0000-0000-000000000042',
+  'cat-skin0-00000-0000-0000-000000000031',
+  NULL,
+  'Clindamycin 1% Topical Gel',
+  'clindamycin-1-gel',
+  'Clindamycin 1% topical gel is an antibiotic used to treat acne. It reduces the bacteria that cause spots and inflammation. Applied to clean, dry skin once or twice daily. Prescription required.',
+  '1302020AD',
+  'POM',
+  1, 1,
+  2200,
+  'ACTIVE', NULL, NOW(), NOW()
+);
+
+-- =============================================================================
 -- ADD YOUR OWN QUERIES BELOW THIS LINE
 -- Each statement is independent — you can run just the new lines.
 -- Tips:
