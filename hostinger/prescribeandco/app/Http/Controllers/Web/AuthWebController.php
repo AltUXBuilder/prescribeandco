@@ -53,7 +53,14 @@ class AuthWebController extends Controller
 
         $this->audit->log($user->id, AuditAction::USER_LOGIN, 'users', $user->id);
 
-        $redirect = $request->session()->pull('redirect_url', route('dashboard'));
+        $default = match($user->role->value) {
+            'ADMIN'      => route('admin.index'),
+            'PRESCRIBER' => route('prescriber.queue'),
+            'DISPENSER'  => route('dispenser.queue'),
+            default      => route('dashboard'),
+        };
+
+        $redirect = $request->session()->pull('redirect_url', $default);
 
         return redirect($redirect);
     }

@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Web\AdminWebController;
 use App\Http\Controllers\Web\AuthWebController;
 use App\Http\Controllers\Web\ConditionWebController;
 use App\Http\Controllers\Web\ConsultationWebController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\DispenserWebController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\PrescriberWebController;
 use App\Http\Controllers\Web\ProductWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,9 +45,36 @@ Route::middleware('web.auth')->group(function () {
     Route::post('/consultation/submit', [ConsultationWebController::class, 'submit'])->name('consultation.submit');
 });
 
-// ── Dashboard (must be logged in) ───────────────────────────────────────
+// ── Customer dashboard ───────────────────────────────────────────────────
 Route::middleware('web.auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/prescriptions/{id}', [DashboardController::class, 'prescription'])->name('dashboard.prescription');
     Route::post('/dashboard/prescriptions/{id}/cancel', [DashboardController::class, 'cancel'])->name('prescription.cancel');
+});
+
+// ── Prescriber dashboard ─────────────────────────────────────────────────
+Route::middleware(['web.auth', 'web.role:PRESCRIBER'])->prefix('prescriber')->name('prescriber.')->group(function () {
+    Route::get('/',                              [PrescriberWebController::class, 'queue'])->name('queue');
+    Route::get('/prescriptions/{id}',            [PrescriberWebController::class, 'show'])->name('show');
+    Route::post('/prescriptions/{id}/claim',     [PrescriberWebController::class, 'claim'])->name('claim');
+    Route::post('/prescriptions/{id}/approve',   [PrescriberWebController::class, 'approve'])->name('approve');
+    Route::post('/prescriptions/{id}/reject',    [PrescriberWebController::class, 'reject'])->name('reject');
+    Route::post('/prescriptions/{id}/info',      [PrescriberWebController::class, 'requestInfo'])->name('requestInfo');
+});
+
+// ── Dispenser dashboard ──────────────────────────────────────────────────
+Route::middleware(['web.auth', 'web.role:DISPENSER'])->prefix('dispenser')->name('dispenser.')->group(function () {
+    Route::get('/',                              [DispenserWebController::class, 'queue'])->name('queue');
+    Route::get('/prescriptions/{id}',            [DispenserWebController::class, 'show'])->name('show');
+    Route::post('/prescriptions/{id}/claim',     [DispenserWebController::class, 'claim'])->name('claim');
+    Route::post('/prescriptions/{id}/fulfil',    [DispenserWebController::class, 'fulfil'])->name('fulfil');
+});
+
+// ── Admin dashboard ──────────────────────────────────────────────────────
+Route::middleware(['web.auth', 'web.role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/',                            [AdminWebController::class, 'index'])->name('index');
+    Route::get('/users',                       [AdminWebController::class, 'users'])->name('users');
+    Route::post('/users/{id}/role',            [AdminWebController::class, 'updateRole'])->name('users.role');
+    Route::post('/users/{id}/toggle-active',   [AdminWebController::class, 'deactivate'])->name('users.toggle');
+    Route::get('/prescriptions',               [AdminWebController::class, 'prescriptions'])->name('prescriptions');
 });

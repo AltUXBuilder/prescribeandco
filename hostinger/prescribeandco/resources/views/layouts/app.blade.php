@@ -79,7 +79,8 @@
       {{-- Auth actions --}}
       <div class="nav-actions">
         @if(session('user_id'))
-          <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm">My Account</a>
+          @php $myDashboard = match(session('user_role')) { 'ADMIN' => route('admin.index'), 'PRESCRIBER' => route('prescriber.queue'), 'DISPENSER' => route('dispenser.queue'), default => route('dashboard') }; @endphp
+          <a href="{{ $myDashboard }}" class="btn btn-secondary btn-sm">My Account</a>
           <form action="{{ route('logout') }}" method="POST" style="display:inline">
             @csrf
             <button type="submit" class="btn btn-primary btn-sm">Sign Out</button>
@@ -112,7 +113,8 @@
     <a href="{{ route('condition.show', 'digestive-health') }}">🌿 Digestive Health</a>
     <a href="{{ route('products.index') }}">All Treatments</a>
     @if(session('user_id'))
-      <a href="{{ route('dashboard') }}">My Account</a>
+      @php $myDashboard = match(session('user_role')) { 'ADMIN' => route('admin.index'), 'PRESCRIBER' => route('prescriber.queue'), 'DISPENSER' => route('dispenser.queue'), default => route('dashboard') }; @endphp
+      <a href="{{ $myDashboard }}">My Account</a>
     @else
       <a href="{{ route('login') }}">Sign In</a>
       <a href="{{ route('register') }}">Create Account</a>
