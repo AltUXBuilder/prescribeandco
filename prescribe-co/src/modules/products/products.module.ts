@@ -4,6 +4,7 @@ import { Product } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
+import { CategoriesController } from './categories.controller';
 import { QuestionnairesModule } from '../questionnaires/questionnaires.module';
 
 @Module({
@@ -12,7 +13,7 @@ import { QuestionnairesModule } from '../questionnaires/questionnaires.module';
     // ProductsService calls QuestionnairesService to validate questionnaire links
     QuestionnairesModule,
   ],
-  controllers: [ProductsController],
+  controllers: [ProductsController, CategoriesController],
   providers: [ProductsService],
   exports: [ProductsService],
 })

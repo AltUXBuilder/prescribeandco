@@ -73,7 +73,7 @@ export class QuestionSchemaDto implements Omit<QuestionSchema, 'id'> {
 
   @IsOptional()
   @IsObject()
-  showIf?: { questionId: string; operator: string; value: string | string[] };
+  showIf?: { questionId: string; operator: 'eq' | 'neq' | 'in' | 'not_in'; value: string | string[] };
 
   @IsInt() @Min(0)
   sortOrder: number;

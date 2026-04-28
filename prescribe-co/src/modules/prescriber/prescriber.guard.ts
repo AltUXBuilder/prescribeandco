@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PrescriberProfile } from '../../users/entities/prescriber-profile.entity';
-import { User } from '../../users/entities/user.entity';
+import { PrescriberProfile } from '../users/entities/prescriber-profile.entity';
+import { User } from '../users/entities/user.entity';
 import { Role } from '../../common/enums/role.enum';
 
 /**

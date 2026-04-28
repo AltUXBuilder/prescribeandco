@@ -9,12 +9,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { PrescriptionRequest } from '../entities/prescription-request.entity';
-import { PrescriptionStateMachine } from './prescription-state-machine.service';
-import { EligibilityCalculator } from './eligibility-calculator.service';
-import { DocumentsService } from '../../documents/documents.service';
-import { ProductsService } from '../../products/products.service';
-import { QuestionnairesService } from '../../questionnaires/questionnaires.service';
+import { PrescriptionRequest } from './entities/prescription-request.entity';
+import { PrescriptionStateMachine } from './services/prescription-state-machine.service';
+import { EligibilityCalculator } from './services/eligibility-calculator.service';
+import { DocumentsService } from '../documents/documents.service';
+import { ProductsService } from '../products/products.service';
+import { QuestionnairesService } from '../questionnaires/questionnaires.service';
 import {
   AttachQuestionnaireResponseDto,
   CancelPrescriptionRequestDto,
@@ -23,13 +23,13 @@ import {
   PrescriptionQueryDto,
   PrescriptionRequestResponseDto,
   SubmitPrescriptionRequestDto,
-} from '../dto/prescriptions.dto';
+} from './dto/prescriptions.dto';
 import {
   PrescriptionStatus,
-} from '../../../common/enums/prescription.enums';
-import { ProductStatus } from '../../../common/enums/medicine-type.enum';
-import { PaymentsService } from '../../payments/payments.service';
-import { AuditHelper } from '../../audit/audit.helper';
+} from '../../common/enums/prescription.enums';
+import { ProductStatus } from '../../common/enums/medicine-type.enum';
+import { PaymentsService } from '../payments/payments.service';
+import { AuditHelper } from '../audit/audit.helper';
 
 @Injectable()
 export class PrescriptionsService {

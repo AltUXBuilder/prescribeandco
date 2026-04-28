@@ -26,6 +26,7 @@ export interface Category {
   name: string
   slug: string
   sortOrder: number
+  parentId?: string | null
   children?: Category[]
 }
 
@@ -209,6 +210,19 @@ export const authService = {
       method: 'POST',
       body: { refreshToken },
     }),
+}
+
+// ── Categories ─────────────────────────────────────────────────────────────
+
+export const categoriesService = {
+  list: (params?: { parentId?: string }) => {
+    const qs = new URLSearchParams()
+    if (params?.parentId !== undefined) qs.set('parentId', params.parentId)
+    return request<Category[]>(`/categories?${qs}`, { next: { revalidate: 300 } } as RequestInit)
+  },
+
+  bySlug: (slug: string) =>
+    request<Category>(`/categories/slug/${slug}`, { next: { revalidate: 300 } } as RequestInit),
 }
 
 // ── Products ───────────────────────────────────────────────────────────────

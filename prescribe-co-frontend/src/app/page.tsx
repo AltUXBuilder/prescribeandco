@@ -84,7 +84,6 @@ export default function HomePage() {
               View all <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={1.5} />
             </Link>
           </div>
-          {/* @ts-expect-error Async Server Component */}
           <FeaturedProducts />
         </div>
       </section>

@@ -11,7 +11,6 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import {
   EligibilityStatus,
   PrescriptionStatus,

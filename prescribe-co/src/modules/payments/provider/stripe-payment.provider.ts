@@ -35,7 +35,7 @@ export class StripePaymentProvider implements IPaymentProvider {
 
   constructor(private readonly config: ConfigService) {
     this.stripe = new Stripe(config.get<string>('payments.stripeSecretKey')!, {
-      apiVersion: '2024-04-10',
+      apiVersion: '2024-06-20',
       typescript: true,
     });
   }
@@ -75,7 +75,7 @@ export class StripePaymentProvider implements IPaymentProvider {
         }),
       };
     } catch (err) {
-      return this.handleStripeError('authorise', err);
+      return { ...this.handleStripeError('authorise', err), providerPaymentId: '', providerReference: null };
     }
   }
 
