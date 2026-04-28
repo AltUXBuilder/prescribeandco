@@ -31,16 +31,69 @@ function run(string $cmd): array {
 }
 
 // ── Find Composer ─────────────────────────────────────────────────────────────
+/**
+ * Returns the full command to invoke Composer (e.g. "composer", "php8.3 /path/composer.phar").
+ * Tries multiple PHP binaries and phar paths; downloads composer.phar as a last resort.
+ */
 function findComposer(): ?string {
-    foreach ([
-        '/usr/local/bin/composer',
-        '/usr/bin/composer',
-        ROOT . '/composer.phar',
-    ] as $path) {
-        if (file_exists($path)) return $path;
+    // PHP CLI binaries to try (Hostinger uses CloudLinux; php8.3 is common)
+    $phpBins = ['php8.3', 'php8.2', 'php8.1', 'php', '/usr/local/bin/php', '/usr/bin/php'];
+
+    // 1. Composer as a standalone binary
+    foreach (['/usr/local/bin/composer', '/usr/bin/composer'] as $bin) {
+        if (file_exists($bin)) {
+            $r = run("$bin --version");
+            if ($r['ok']) return $bin;
+            foreach ($phpBins as $php) {
+                $r2 = run("$php $bin --version");
+                if ($r2['ok']) return "$php $bin";
+            }
+        }
     }
-    $result = run('which composer');
-    return $result['ok'] ? trim($result['output']) : null;
+
+    // 2. composer in PATH
+    $r = run('composer --version');
+    if ($r['ok']) return 'composer';
+
+    // 3. which composer
+    $r = run('which composer');
+    if ($r['ok'] && ($path = trim($r['output'])) !== '') {
+        $r2 = run("$path --version");
+        if ($r2['ok']) return $path;
+    }
+
+    // 4. composer.phar already present
+    foreach ([ROOT . '/composer.phar', dirname(ROOT) . '/composer.phar', '/usr/local/bin/composer.phar'] as $phar) {
+        if (file_exists($phar)) {
+            foreach ($phpBins as $php) {
+                $r = run("$php $phar --version");
+                if ($r['ok']) return "$php $phar";
+            }
+        }
+    }
+
+    // 5. Download composer.phar as a last resort
+    $localPhar = ROOT . '/composer.phar';
+    $downloaded = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init('https://getcomposer.org/composer-stable.phar');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 60]);
+        $data = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($data && $httpCode === 200) { file_put_contents($localPhar, $data); $downloaded = true; }
+    } elseif (ini_get('allow_url_fopen')) {
+        $data = @file_get_contents('https://getcomposer.org/composer-stable.phar');
+        if ($data) { file_put_contents($localPhar, $data); $downloaded = true; }
+    }
+    if ($downloaded && file_exists($localPhar)) {
+        foreach ($phpBins as $php) {
+            $r = run("$php $localPhar --version");
+            if ($r['ok']) return "$php $localPhar";
+        }
+    }
+
+    return null;
 }
 
 // ── Step 2: install deps + write env + finalise ───────────────────────────────
@@ -81,14 +134,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 2) {
     if (empty($errors) && !is_dir(ROOT . '/vendor')) {
         $composer = findComposer();
         if (!$composer) {
-            $errors[] = 'Composer not found on this server. Contact Hostinger support '
-                      . 'or upload the <code>vendor/</code> folder manually.';
+            $errors[] = 'Composer not found on this server and could not be downloaded automatically.<br>'
+                      . 'Contact Hostinger support and ask them to run:<br>'
+                      . '<pre>cd ~/public_html/prescribeandco &amp;&amp; composer install --no-dev</pre>'
+                      . 'Or upload the <code>vendor/</code> folder manually via File Manager.';
         } else {
             $result = run("cd " . escapeshellarg(ROOT) . " && {$composer} install --no-dev --optimize-autoloader --no-interaction");
             if ($result['ok']) {
                 $log[] = '&#10003; Dependencies installed.';
             } else {
-                $errors[] = 'Composer install failed:<br><pre>' . htmlspecialchars($result['output']) . '</pre>';
+                $errors[] = 'Composer install failed. Command used: <code>' . htmlspecialchars($composer) . '</code><br>'
+                          . '<pre>' . htmlspecialchars($result['output']) . '</pre>'
+                          . '<strong>Fix:</strong> Contact Hostinger support and ask them to run:<br>'
+                          . '<pre>cd ~/public_html/prescribeandco &amp;&amp; composer install --no-dev</pre>';
             }
         }
     } elseif (is_dir(ROOT . '/vendor')) {

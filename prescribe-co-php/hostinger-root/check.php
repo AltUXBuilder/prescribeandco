@@ -95,7 +95,11 @@ echo '<h2>Autoloader Test</h2>';
 $autoloader = $root . '/vendor/autoload.php';
 if (!file_exists($autoloader)) {
     echo '<div class="bad">✗ vendor/autoload.php missing — Composer has not been installed.</div>';
-    echo '<div class="fix">setup.php should install this automatically. Try running setup.php again. If it keeps failing, contact Hostinger support and ask them to run:<br><code>cd ~/public_html/prescribeandco && composer install --no-dev</code></div>';
+    echo '<div class="fix">Try running setup.php again — it will attempt to find or download Composer automatically.<br>'
+       . 'If it keeps failing, contact Hostinger support and ask them to run:<br>'
+       . '<code>cd ~/public_html/prescribeandco &amp;&amp; composer install --no-dev</code><br><br>'
+       . 'Or in hPanel → Advanced → SSH Terminal, run:<br>'
+       . '<code>php8.3 /usr/local/bin/composer install --no-dev --working-dir=~/public_html/prescribeandco</code></div>';
 } else {
     try {
         require_once $autoloader;

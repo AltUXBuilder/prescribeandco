@@ -25,12 +25,83 @@ function run(string $cmd): array {
     return ['output' => implode("\n", $output), 'ok' => $code === 0];
 }
 
-function findComposer(): ?string {
-    foreach (['/usr/local/bin/composer', '/usr/bin/composer', ROOT . '/composer.phar'] as $path) {
-        if (file_exists($path)) return $path;
+/**
+ * Returns the full command to invoke Composer (e.g. "composer", "php8.3 /path/composer.phar").
+ * Returns null if nothing works.
+ */
+function findComposerCmd(): ?string {
+    // PHP CLI binaries to try (Hostinger uses CloudLinux; php8.3 is common)
+    $phpBins = ['php8.3', 'php8.2', 'php8.1', 'php', '/usr/local/bin/php', '/usr/bin/php'];
+
+    // 1. Composer as a standalone binary (not a phar)
+    $composerBins = ['/usr/local/bin/composer', '/usr/bin/composer'];
+    foreach ($composerBins as $bin) {
+        if (file_exists($bin)) {
+            $r = run("$bin --version");
+            if ($r['ok']) return $bin;
+            // File exists but not self-executable — try with a php binary
+            foreach ($phpBins as $php) {
+                $r2 = run("$php $bin --version");
+                if ($r2['ok']) return "$php $bin";
+            }
+        }
     }
+
+    // 2. composer in PATH
+    $r = run('composer --version');
+    if ($r['ok']) return 'composer';
+
+    // 3. which composer
     $r = run('which composer');
-    return $r['ok'] ? trim($r['output']) : null;
+    if ($r['ok'] && ($path = trim($r['output'])) !== '') {
+        $r2 = run("$path --version");
+        if ($r2['ok']) return $path;
+    }
+
+    // 4. composer.phar already present (uploaded manually or from previous run)
+    $pharPaths = [
+        ROOT . '/composer.phar',
+        __DIR__ . '/composer.phar',
+        '/usr/local/bin/composer.phar',
+    ];
+    foreach ($pharPaths as $phar) {
+        if (file_exists($phar)) {
+            foreach ($phpBins as $php) {
+                $r = run("$php $phar --version");
+                if ($r['ok']) return "$php $phar";
+            }
+        }
+    }
+
+    // 5. Download composer.phar as a last resort
+    $localPhar = ROOT . '/composer.phar';
+    $downloaded = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init('https://getcomposer.org/composer-stable.phar');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 60]);
+        $data = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($data && $httpCode === 200) {
+            file_put_contents($localPhar, $data);
+            $downloaded = true;
+        }
+    } elseif (ini_get('allow_url_fopen')) {
+        $data = @file_get_contents('https://getcomposer.org/composer-stable.phar');
+        if ($data) {
+            file_put_contents($localPhar, $data);
+            $downloaded = true;
+        }
+    }
+
+    if ($downloaded && file_exists($localPhar)) {
+        foreach ($phpBins as $php) {
+            $r = run("$php $localPhar --version");
+            if ($r['ok']) return "$php $localPhar";
+        }
+    }
+
+    return null;
 }
 
 $errors = [];
@@ -69,15 +140,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Install Composer dependencies if vendor/ missing
     if (empty($errors) && !is_dir(ROOT . '/vendor')) {
-        $composer = findComposer();
-        if (!$composer) {
-            $errors[] = 'Composer not found. Contact Hostinger support or upload the vendor/ folder manually.';
+        $composerCmd = findComposerCmd();
+        if (!$composerCmd) {
+            $errors[] = 'Composer not found on this server and could not be downloaded automatically.<br>'
+                      . 'Please contact Hostinger support and ask them to run:<br>'
+                      . '<pre>cd ~/public_html/prescribeandco &amp;&amp; composer install --no-dev</pre>'
+                      . 'Or upload the <code>vendor/</code> folder manually via File Manager.';
         } else {
-            $result = run("cd " . escapeshellarg(ROOT) . " && {$composer} install --no-dev --optimize-autoloader --no-interaction");
+            $result = run("cd " . escapeshellarg(ROOT) . " && {$composerCmd} install --no-dev --optimize-autoloader --no-interaction");
             if ($result['ok']) {
                 $log[] = '&#10003; Dependencies installed.';
             } else {
-                $errors[] = 'Composer install failed:<br><pre>' . htmlspecialchars($result['output']) . '</pre>';
+                $errors[] = 'Composer install failed. Command used: <code>' . htmlspecialchars($composerCmd) . '</code><br>'
+                          . '<pre>' . htmlspecialchars($result['output']) . '</pre>'
+                          . '<strong>Fix:</strong> Contact Hostinger support and ask them to run:<br>'
+                          . '<pre>cd ~/public_html/prescribeandco &amp;&amp; composer install --no-dev</pre>';
             }
         }
     } elseif (is_dir(ROOT . '/vendor')) {
@@ -180,7 +257,7 @@ $done = !empty($log) && strpos(implode('', $log), 'complete') !== false;
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F9F6F0;color:#2C2C2C;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
-    .card{background:#fff;border-radius:12px;padding:2.5rem;width:100%;max-width:500px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+    .card{background:#fff;border-radius:12px;padding:2.5rem;width:100%;max-width:520px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
     h1{font-size:1.5rem;margin-bottom:.2rem}
     .sub{color:#999;font-size:.875rem;margin-bottom:2rem}
     .sec{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#bbb;margin-top:1.5rem;margin-bottom:.1rem}
@@ -200,7 +277,7 @@ $done = !empty($log) && strpos(implode('', $log), 'complete') !== false;
     .success p{color:#555;font-size:.9rem;margin-bottom:1.25rem}
     .links a{display:inline-block;margin:.3rem .2rem;padding:.55rem 1.1rem;background:#7B6BAE;color:#fff;border-radius:8px;text-decoration:none;font-size:.875rem;font-weight:600}
     .links a.sec{background:#f0edf8;color:#7B6BAE}
-    pre{font-size:.75rem;white-space:pre-wrap;word-break:break-all}
+    pre{font-size:.75rem;white-space:pre-wrap;word-break:break-all;background:#f8f8f8;padding:.5rem;border-radius:4px;margin:.3rem 0}
   </style>
 </head>
 <body>
