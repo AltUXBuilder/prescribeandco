@@ -100,25 +100,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $envReady) {
 
     // Install Composer dependencies if vendor/ is missing
     if (!is_dir(ROOT . '/vendor')) {
-        $composerCmd = findComposerCmd();
-        if (!$composerCmd) {
-            $errors[] = 'Composer not found on this server and could not be downloaded.<br>'
-                      . 'Contact Hostinger support and ask them to run via SSH Terminal:<br>'
-                      . '<pre>php8.3 /usr/local/bin/composer install --no-dev --working-dir=~/public_html/prescribeandco</pre>'
-                      . 'Or upload the <code>vendor/</code> folder via File Manager.';
-        } else {
-            $result = run("cd " . escapeshellarg(ROOT) . " && {$composerCmd} install --no-dev --optimize-autoloader --no-interaction");
-            if ($result['ok']) {
-                $log[] = '&#10003; Composer dependencies installed.';
+
+        // ── Option A: extract pre-built vendor.zip (ships with the repo) ──────
+        $vendorZip = ROOT . '/vendor.zip';
+        if (file_exists($vendorZip) && class_exists('ZipArchive')) {
+            $zip = new ZipArchive();
+            if ($zip->open($vendorZip) === true) {
+                $zip->extractTo(ROOT);
+                $zip->close();
+                if (is_dir(ROOT . '/vendor')) {
+                    $log[] = '&#10003; Dependencies extracted from vendor.zip.';
+                } else {
+                    $errors[] = 'vendor.zip was found but extraction failed — check that <code>prescribeandco/</code> is writable.';
+                }
             } else {
-                $errors[] = 'Composer install failed (command: <code>' . htmlspecialchars($composerCmd) . '</code>)<br>'
-                          . '<pre>' . htmlspecialchars($result['output']) . '</pre>'
-                          . '<strong>Manual fix:</strong> In hPanel → Advanced → SSH Terminal, run:<br>'
+                $errors[] = 'vendor.zip could not be opened. Try re-uploading it.';
+            }
+
+        // ── Option B: run Composer ─────────────────────────────────────────────
+        } else {
+            $composerCmd = findComposerCmd();
+            if (!$composerCmd) {
+                $errors[] = 'vendor.zip not found and Composer is unavailable.<br>'
+                          . '<strong>Easiest fix:</strong> Download <code>vendor.zip</code> from the GitHub repo, '
+                          . 'upload it into <code>public_html/prescribeandco/</code> via File Manager, then click Install again.<br>'
+                          . 'Or in hPanel → Advanced → SSH Terminal:<br>'
                           . '<pre>php8.3 /usr/local/bin/composer install --no-dev --working-dir=~/public_html/prescribeandco</pre>';
+            } else {
+                $result = run("cd " . escapeshellarg(ROOT) . " && {$composerCmd} install --no-dev --optimize-autoloader --no-interaction");
+                if ($result['ok']) {
+                    $log[] = '&#10003; Dependencies installed via Composer.';
+                } else {
+                    $errors[] = 'Composer install failed (command: <code>' . htmlspecialchars($composerCmd) . '</code>)<br>'
+                              . '<pre>' . htmlspecialchars($result['output']) . '</pre>'
+                              . '<strong>Easiest fix:</strong> Download <code>vendor.zip</code> from the GitHub repo, '
+                              . 'upload it to <code>public_html/prescribeandco/</code>, then click Install again.';
+                }
             }
         }
+
     } else {
-        $log[] = '&#10003; Composer dependencies already present.';
+        $log[] = '&#10003; Dependencies already present.';
     }
 
     // Set storage / cache permissions
@@ -217,10 +239,19 @@ $done = !empty($log) && strpos(implode('', $log), 'complete') !== false;
       <span>Database <?= ($envExists && preg_match('/^DB_DATABASE=.+/m', $envContent)) ? 'configured' : 'not configured — <a href="configure.php" style="color:#7B6BAE;font-weight:600">configure.php</a>' ?></span>
     </div>
     <div class="check-item">
-      <span class="<?= is_dir(ROOT . '/vendor') ? 'icon-ok' : 'icon-warn' ?>">
-        <?= is_dir(ROOT . '/vendor') ? '✓' : '⚠' ?>
+      <?php
+        $vendorOk  = is_dir(ROOT . '/vendor');
+        $zipExists = file_exists(ROOT . '/vendor.zip');
+      ?>
+      <span class="<?= $vendorOk ? 'icon-ok' : ($zipExists ? 'icon-warn' : 'icon-bad') ?>">
+        <?= $vendorOk ? '✓' : ($zipExists ? '⚠' : '✗') ?>
       </span>
-      <span>vendor/ <?= is_dir(ROOT . '/vendor') ? 'present' : 'missing — install below' ?></span>
+      <span>
+        <?php if ($vendorOk): ?>vendor/ present
+        <?php elseif ($zipExists): ?>vendor.zip ready — click Install to extract
+        <?php else: ?>vendor.zip missing — upload it to <code>prescribeandco/</code> then click Install
+        <?php endif; ?>
+      </span>
     </div>
   </div>
 
@@ -242,8 +273,15 @@ $done = !empty($log) && strpos(implode('', $log), 'complete') !== false;
   <?php endif; ?>
 
   <form method="POST">
+    <?php
+      $vendorPresent = is_dir(ROOT . '/vendor');
+      $zipPresent    = file_exists(ROOT . '/vendor.zip');
+      $btnLabel = $vendorPresent
+        ? 'Set permissions &amp; finish'
+        : ($zipPresent ? 'Extract vendor.zip &amp; finish' : 'Install &amp; finish');
+    ?>
     <button class="btn" type="submit" <?= $envReady ? '' : 'disabled' ?>>
-      <?= is_dir(ROOT . '/vendor') ? 'Set permissions &amp; finish' : 'Install Composer &amp; set permissions' ?> &rarr;
+      <?= $btnLabel ?> &rarr;
     </button>
   </form>
 
