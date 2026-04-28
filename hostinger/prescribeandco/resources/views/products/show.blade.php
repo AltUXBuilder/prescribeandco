@@ -35,7 +35,7 @@
 
           @if($product->requires_prescription)
             @if(session('user_id'))
-              <a href="{{ route('consultation.start', ['product_id' => $product->id]) }}"
+              <a href="{{ route('consultation.start', ['product' => $product->slug]) }}"
                  class="btn btn-primary btn-full" style="margin-bottom:.75rem">
                 Start consultation
               </a>
