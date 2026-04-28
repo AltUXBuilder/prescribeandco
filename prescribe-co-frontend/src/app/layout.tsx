@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Playfair_Display, DM_Sans, DM_Mono } from 'next/font/google'
+import { AuthProvider } from '@/lib/auth-context'
 import './globals.css'
 
 const playfair = Playfair_Display({
@@ -26,10 +27,7 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: {
-    template: '%s | P&Co. Pharmacy',
-    default: 'P&Co. — Modern Online Pharmacy',
-  },
+  title: { template: '%s | P&Co. Pharmacy', default: 'P&Co. — Modern Online Pharmacy' },
   description: 'UK-registered online pharmacy. Confidential consultations, prescription treatments, and trusted healthcare delivered to your door.',
   keywords: ['online pharmacy', 'prescription', 'UK pharmacy', 'GPhC registered', 'healthcare'],
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? 'https://prescribeandco.com'),
@@ -41,18 +39,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable}`}
-    >
+    <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable}`}>
       <body className="bg-cream text-charcoal font-sans antialiased">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
