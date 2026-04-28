@@ -1,0 +1,7 @@
+/vendor/
+/bootstrap/cache/*.php
+/storage/*.key
+.env
+.phpunit.result.cache
+Thumbs.db
+.DS_Store
