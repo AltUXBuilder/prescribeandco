@@ -1,91 +1,89 @@
-# Quick Deploy — 5 Steps
+# Quick Deploy — 4 Steps, No SSH
 
 ---
 
-## Step 1 — Upload files to Hostinger
+## Step 1 — Upload files
 
-1. Download this repo as a ZIP from GitHub (green **Code** button → **Download ZIP**)
-2. Unzip it on your computer — go into the `prescribe-co-php` folder
-3. Zip the contents of `prescribe-co-php` (not the folder itself, the files inside)
+1. On this GitHub page click the green **Code** button → **Download ZIP**
+2. Unzip it — go inside the `prescribe-co-php` folder
+3. Select everything inside `prescribe-co-php`, zip those files
 4. In **hPanel → Files → File Manager** → open `public_html/`
 5. Create a folder called `prescribeandco`
-6. Upload your zip into it → right-click → **Extract**
+6. Upload your zip into that folder → right-click it → **Extract**
 
 ---
 
-## Step 2 — Run the SQL
+## Step 2 — Set document root
 
-1. **hPanel → Databases → MySQL Databases** → create a database, a user, and assign the user to the database with All Privileges
-2. **hPanel → Databases → phpMyAdmin** → click your database → **SQL** tab
-3. Open `database/prescribeandco.sql`, paste the whole thing → **Go**
-
----
-
-## Step 3 — Point your domain to the right folder
-
-**hPanel → Domains → Manage → ⋮ → Edit**
+**hPanel → Domains → Manage → click ⋮ next to your domain → Edit**
 
 Change **Document Root** to:
 ```
 public_html/prescribeandco/public
 ```
+Click Save.
 
 ---
 
-## Step 4 — Run the deploy script via SSH
+## Step 3 — Run the SQL
 
-```bash
-# Connect (get hostname/port from hPanel → Advanced → SSH Access)
-ssh u123456789@your.server.hostname -p 65002
+**hPanel → Databases → MySQL Databases**
+- Create a database — e.g. `u123456789_prescribe`
+- Create a user — e.g. `u123456789_appuser` with a strong password
+- Add the user to the database → **All Privileges**
 
-# Go into your app folder
-cd ~/public_html/prescribeandco
+**hPanel → Databases → phpMyAdmin**
+- Click your database name in the left panel
+- Click the **SQL** tab
+- Open `database/prescribeandco.sql`, paste everything → **Go**
 
-# Run the script — it will ask you 4 questions then do everything
-bash deploy.sh
+---
+
+## Step 4 — Run the browser installer
+
+Visit:
+```
+https://yourdomain.com/setup.php
 ```
 
-The script asks for:
-- Your domain (e.g. `https://yourdomain.com`)
-- Database name, username, password (from Step 2)
+Fill in your domain and the database details from Step 3, then click **Install now**.
 
-Everything else (JWT secrets, app key, permissions, caching) is done automatically.
+The installer will:
+- Install all PHP dependencies automatically
+- Generate your app key and JWT secrets
+- Write your config file
+- Set folder permissions
+- Delete itself when done
+
+**That's it — your site is live.**
 
 ---
 
-## Step 5 — Check it works
+## Check it works
 
 | Page | URL |
 |---|---|
 | Homepage | `https://yourdomain.com` |
 | Treatments | `https://yourdomain.com/treatments` |
 | Register | `https://yourdomain.com/register` |
-| API check | `https://yourdomain.com/api/v1/health` |
+| API health | `https://yourdomain.com/api/v1/health` |
 
 ---
 
 ## Something went wrong?
 
-```bash
-# See the exact error
-tail -50 ~/public_html/prescribeandco/storage/logs/laravel.log
-```
-
 | Problem | Fix |
 |---|---|
-| 404 everywhere | Document root not set correctly in Step 3 |
-| 500 error | Check the log file above |
-| Can't connect to DB | Wrong DB credentials — edit `.env` then run `php artisan config:cache` |
-| CSS not loading | `APP_URL` in `.env` doesn't match your actual domain |
+| setup.php returns 404 | Document root not set correctly — check Step 2 |
+| "Tables are missing" | Run the SQL file in phpMyAdmin (Step 3) first |
+| "Database connection failed" | Wrong credentials, or user not assigned to database |
+| "Composer not found" | Contact Hostinger support — or use SSH: `cd ~/public_html/prescribeandco && composer install --no-dev` |
+| Blank page after setup | Open `storage/logs/laravel.log` in File Manager to see the error |
 
 ---
 
-## Redeploying after changes
+## Updating the site after changes
 
-Upload the changed files, then SSH in and run:
-
-```bash
-cd ~/public_html/prescribeandco
-php artisan optimize:clear
-php artisan config:cache && php artisan route:cache && php artisan view:cache
-```
+1. Upload the changed files via File Manager (overwrite existing ones)
+2. If config changed: delete `bootstrap/cache/config.php` in File Manager
+3. Refresh — done

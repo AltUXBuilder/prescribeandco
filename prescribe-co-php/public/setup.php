@@ -1,0 +1,317 @@
+<?php
+/**
+ * Prescribe & Co — Browser Installer
+ *
+ * Visit https://yourdomain.com/setup.php once after uploading files.
+ * This file deletes itself automatically when setup is complete.
+ */
+
+define('ROOT', dirname(__DIR__));
+define('ENV_PATH', ROOT . '/.env');
+
+// ── Already set up? Block access ─────────────────────────────────────────────
+if (file_exists(ENV_PATH)) {
+    $content = file_get_contents(ENV_PATH);
+    if (strpos($content, 'APP_KEY=base64:') !== false) {
+        http_response_code(404);
+        die('<h2>Setup already complete.</h2><p><a href="/">Go to site</a></p>');
+    }
+}
+
+// ── Step tracking ─────────────────────────────────────────────────────────────
+$step   = (int) ($_POST['step'] ?? 1);
+$errors = [];
+$log    = [];
+
+// ── Helper: run a shell command safely ───────────────────────────────────────
+function run(string $cmd): array {
+    $output = []; $code = 0;
+    exec($cmd . ' 2>&1', $output, $code);
+    return ['output' => implode("\n", $output), 'ok' => $code === 0];
+}
+
+// ── Find Composer ─────────────────────────────────────────────────────────────
+function findComposer(): ?string {
+    foreach ([
+        '/usr/local/bin/composer',
+        '/usr/bin/composer',
+        ROOT . '/composer.phar',
+    ] as $path) {
+        if (file_exists($path)) return $path;
+    }
+    $result = run('which composer');
+    return $result['ok'] ? trim($result['output']) : null;
+}
+
+// ── Step 2: install deps + write env + finalise ───────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 2) {
+
+    $siteUrl = rtrim(trim($_POST['app_url'] ?? ''), '/');
+    $dbHost  = trim($_POST['db_host']  ?? '127.0.0.1') ?: '127.0.0.1';
+    $dbName  = trim($_POST['db_name']  ?? '');
+    $dbUser  = trim($_POST['db_user']  ?? '');
+    $dbPass  =      $_POST['db_pass']  ?? '';
+
+    // Validate
+    if (!$siteUrl) $errors[] = 'Site URL is required.';
+    if (!$dbName)  $errors[] = 'Database name is required.';
+    if (!$dbUser)  $errors[] = 'Database username is required.';
+
+    // Test DB connection
+    if (empty($errors)) {
+        try {
+            $pdo = new PDO(
+                "mysql:host={$dbHost};port=3306;dbname={$dbName};charset=utf8mb4",
+                $dbUser, $dbPass,
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+            );
+            $tables = $pdo->query("SHOW TABLES LIKE 'users'")->fetchAll();
+            if (empty($tables)) {
+                $errors[] = 'Connected to the database but the tables are missing — '
+                          . 'please run <strong>prescribeandco.sql</strong> in phpMyAdmin first, then try again.';
+            } else {
+                $log[] = '&#10003; Database connected and tables found.';
+            }
+        } catch (PDOException $e) {
+            $errors[] = 'Database connection failed: ' . htmlspecialchars($e->getMessage());
+        }
+    }
+
+    // Install Composer dependencies
+    if (empty($errors) && !is_dir(ROOT . '/vendor')) {
+        $composer = findComposer();
+        if (!$composer) {
+            $errors[] = 'Composer not found on this server. Contact Hostinger support '
+                      . 'or upload the <code>vendor/</code> folder manually.';
+        } else {
+            $result = run("cd " . escapeshellarg(ROOT) . " && {$composer} install --no-dev --optimize-autoloader --no-interaction");
+            if ($result['ok']) {
+                $log[] = '&#10003; Dependencies installed.';
+            } else {
+                $errors[] = 'Composer install failed:<br><pre>' . htmlspecialchars($result['output']) . '</pre>';
+            }
+        }
+    } elseif (is_dir(ROOT . '/vendor')) {
+        $log[] = '&#10003; Dependencies already present.';
+    }
+
+    // Write .env
+    if (empty($errors)) {
+        $appKey     = 'base64:' . base64_encode(random_bytes(32));
+        $jwtAccess  = bin2hex(random_bytes(32));
+        $jwtRefresh = bin2hex(random_bytes(32));
+
+        $env = <<<ENVFILE
+APP_NAME="Prescribe & Co"
+APP_ENV=production
+APP_KEY={$appKey}
+APP_DEBUG=false
+APP_URL={$siteUrl}
+
+LOG_CHANNEL=single
+LOG_LEVEL=error
+
+DB_CONNECTION=mysql
+DB_HOST={$dbHost}
+DB_PORT=3306
+DB_DATABASE={$dbName}
+DB_USERNAME={$dbUser}
+DB_PASSWORD={$dbPass}
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=false
+SESSION_ENCRYPT=false
+
+CACHE_STORE=file
+
+JWT_ACCESS_SECRET={$jwtAccess}
+JWT_REFRESH_SECRET={$jwtRefresh}
+JWT_ACCESS_TTL=900
+JWT_REFRESH_TTL=604800
+
+THROTTLE_DEFAULT=20
+THROTTLE_AUTH=5
+THROTTLE_REFRESH=10
+
+CORS_ALLOWED_ORIGINS={$siteUrl}
+
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_RETURN_URL={$siteUrl}/payment/return
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=eu-west-2
+AWS_BUCKET=
+S3_PRESIGNED_TTL=900
+ENVFILE;
+
+        if (file_put_contents(ENV_PATH, $env) !== false) {
+            $log[] = '&#10003; Configuration file written.';
+        } else {
+            $errors[] = 'Could not write .env — check that the <code>prescribeandco/</code> folder is writable.';
+        }
+    }
+
+    // Create writable directories and set permissions
+    if (empty($errors)) {
+        $dirs = [
+            ROOT . '/storage/framework/sessions',
+            ROOT . '/storage/framework/views',
+            ROOT . '/storage/framework/cache/data',
+            ROOT . '/storage/logs',
+            ROOT . '/bootstrap/cache',
+        ];
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) mkdir($dir, 0775, true);
+            @chmod($dir, 0775);
+        }
+        $log[] = '&#10003; Permissions set.';
+        $log[] = '&#10003; Setup complete — installer removed.';
+
+        // Self-delete for security
+        @unlink(__FILE__);
+    }
+}
+
+// ── Collect form data for re-display on error ─────────────────────────────────
+$formData = [
+    'app_url'  => htmlspecialchars($_POST['app_url']  ?? ((isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? ''))),
+    'db_host'  => htmlspecialchars($_POST['db_host']  ?? '127.0.0.1'),
+    'db_name'  => htmlspecialchars($_POST['db_name']  ?? ''),
+    'db_user'  => htmlspecialchars($_POST['db_user']  ?? ''),
+];
+
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prescribe &amp; Co — Setup</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F9F6F0; color: #2C2C2C;
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 2rem 1rem;
+    }
+    .card {
+      background: #fff; border-radius: 12px; padding: 2.5rem;
+      width: 100%; max-width: 500px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    h1  { font-size: 1.5rem; margin-bottom: .2rem; }
+    .sub { color: #999; font-size: .875rem; margin-bottom: 2rem; }
+    .section { font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+               text-transform: uppercase; color: #bbb;
+               margin-top: 1.5rem; margin-bottom: .1rem; }
+    label { display: block; font-size: .85rem; font-weight: 600;
+            color: #555; margin-top: 1rem; margin-bottom: .3rem; }
+    input { width: 100%; padding: .6rem .8rem; border: 1px solid #ddd;
+            border-radius: 8px; font-size: .95rem; }
+    input:focus { outline: none; border-color: #9B8EC4; }
+    .hint { font-size: .77rem; color: #bbb; margin-top: .2rem; }
+    .btn {
+      display: block; width: 100%; padding: .85rem;
+      background: #7B6BAE; color: #fff; border: none;
+      border-radius: 8px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; margin-top: 1.75rem; transition: background .2s;
+    }
+    .btn:hover { background: #6a5a9e; }
+    .errors { background: #fff0f0; border: 1px solid #f5c6cb;
+              border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem; }
+    .errors p { color: #c0392b; font-size: .875rem; margin: .25rem 0; line-height: 1.5; }
+    .log { background: #f0fdf4; border: 1px solid #bbf7d0;
+           border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem; }
+    .log p { color: #166534; font-size: .875rem; margin: .2rem 0; }
+    .success { text-align: center; }
+    .success .tick { font-size: 3rem; margin-bottom: 1rem; }
+    .success h2 { color: #166534; font-size: 1.3rem; margin-bottom: .75rem; }
+    .success p  { color: #555; font-size: .9rem; margin-bottom: 1.25rem; }
+    .links a {
+      display: inline-block; margin: .3rem .2rem; padding: .55rem 1.1rem;
+      background: #7B6BAE; color: #fff; border-radius: 8px;
+      text-decoration: none; font-size: .875rem; font-weight: 600;
+    }
+    .links a.sec { background: #f0edf8; color: #7B6BAE; }
+    pre { font-size: .75rem; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+<?php if (empty($errors) && !empty($log) && strpos(implode('', $log), 'complete') !== false): ?>
+
+  {{-- ── Success ── --}}
+  <div class="success">
+    <div class="tick">&#10003;</div>
+    <h2>Setup complete!</h2>
+    <p>Your site is configured and ready to use.</p>
+    <div class="links">
+      <a href="/">Visit site</a>
+      <a href="/register" class="sec">Create account</a>
+      <a href="/api/v1/health" class="sec">API health</a>
+    </div>
+  </div>
+
+<?php else: ?>
+
+  <h1>Prescribe &amp; Co</h1>
+  <p class="sub">First-time setup &mdash; takes about 60 seconds</p>
+
+  <?php if ($errors): ?>
+    <div class="errors">
+      <?php foreach ($errors as $e): ?>
+        <p>&#9888; <?= $e ?></p>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($log): ?>
+    <div class="log">
+      <?php foreach ($log as $l): ?>
+        <p><?= $l ?></p>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <form method="POST">
+    <input type="hidden" name="step" value="2">
+
+    <p class="section">Your site</p>
+
+    <label for="app_url">Domain</label>
+    <input id="app_url" name="app_url" type="url" required
+           placeholder="https://yourdomain.com"
+           value="<?= $formData['app_url'] ?>">
+    <p class="hint">Your full domain — no trailing slash</p>
+
+    <p class="section">Database &mdash; from hPanel &rarr; MySQL Databases</p>
+
+    <label for="db_host">Host</label>
+    <input id="db_host" name="db_host" type="text"
+           value="<?= $formData['db_host'] ?>">
+
+    <label for="db_name">Database name</label>
+    <input id="db_name" name="db_name" type="text" required
+           placeholder="u123456789_prescribe"
+           value="<?= $formData['db_name'] ?>">
+
+    <label for="db_user">Username</label>
+    <input id="db_user" name="db_user" type="text" required
+           placeholder="u123456789_appuser"
+           value="<?= $formData['db_user'] ?>">
+
+    <label for="db_pass">Password</label>
+    <input id="db_pass" name="db_pass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+
+    <button class="btn" type="submit">Install now &rarr;</button>
+  </form>
+
+<?php endif; ?>
+
+</div>
+</body>
+</html>
