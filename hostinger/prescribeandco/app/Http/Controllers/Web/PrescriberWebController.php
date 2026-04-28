@@ -38,7 +38,7 @@ class PrescriberWebController extends Controller
 
     public function show(string $id): View
     {
-        $rx = PrescriptionRequest::with(['customer', 'product', 'questionnaireResponse'])
+        $rx = PrescriptionRequest::with(['customer', 'product', 'questionnaireResponse.questionnaire'])
             ->whereIn('status', [
                 PrescriptionStatus::SUBMITTED,
                 PrescriptionStatus::UNDER_REVIEW,
@@ -47,13 +47,20 @@ class PrescriberWebController extends Controller
             ])
             ->findOrFail($id);
 
+        $orderHistory = PrescriptionRequest::where('customer_id', $rx->customer_id)
+            ->where('id', '!=', $rx->id)
+            ->with('product')
+            ->orderByDesc('submitted_at')
+            ->limit(10)
+            ->get();
+
         $this->audit->log(
             session('user_id'), AuditAction::PRESCRIPTION_VIEWED,
             'prescription_requests', $id,
             null, null, null, 'PRESCRIBER', $this->gphc()
         );
 
-        return view('prescriber.show', compact('rx'));
+        return view('prescriber.show', compact('rx', 'orderHistory'));
     }
 
     // ── Actions ──────────────────────────────────────────────────────────────

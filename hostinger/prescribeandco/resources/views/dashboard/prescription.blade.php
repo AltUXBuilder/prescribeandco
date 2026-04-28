@@ -80,6 +80,14 @@
         @endif
       </div>
 
+      {{-- Message from prescriber --}}
+      @if($prescription->prescriber_note)
+        <div class="card card-pad" style="border-left:3px solid var(--lavender-deep)">
+          <h3 style="margin-bottom:.75rem;font-size:1rem">Message from your prescriber</h3>
+          <p>{{ $prescription->prescriber_note }}</p>
+        </div>
+      @endif
+
       {{-- Customer note --}}
       @if($prescription->customer_note)
         <div class="card card-pad">

@@ -59,12 +59,24 @@
       @else
         <div class="card" style="overflow:hidden">
           <table class="rx-table">
-            <thead><tr><th>Patient</th><th>Treatment</th><th>Submitted</th><th>Waiting</th><th></th></tr></thead>
+            <thead><tr><th>Patient</th><th>Treatment</th><th>Eligibility</th><th>Submitted</th><th>Waiting</th><th></th></tr></thead>
             <tbody>
               @foreach($pending as $rx)
               <tr>
                 <td><strong>{{ $rx->customer->full_name ?? '—' }}</strong><br><span class="text-muted text-sm">{{ $rx->customer->email ?? '' }}</span></td>
                 <td>{{ $rx->product->name ?? '—' }}</td>
+                <td>
+                  @php $eli = $rx->eligibility_status ?? null; @endphp
+                  @if($eli === 'PASS')
+                    <span class="badge" style="background:#d1fae5;color:#065f46">PASS</span>
+                  @elseif($eli === 'FLAG')
+                    <span class="badge" style="background:#fef3c7;color:#92400e">FLAG</span>
+                  @elseif($eli === 'FAIL')
+                    <span class="badge" style="background:#fee2e2;color:#991b1b">FAIL</span>
+                  @else
+                    <span class="text-muted text-sm">—</span>
+                  @endif
+                </td>
                 <td class="text-muted text-sm">{{ $rx->submitted_at?->format('d M Y') ?? '—' }}</td>
                 <td class="text-muted text-sm">{{ $rx->submitted_at?->diffForHumans() ?? '—' }}</td>
                 <td>

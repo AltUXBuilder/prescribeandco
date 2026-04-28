@@ -34,7 +34,7 @@ class DashboardController extends Controller
         // 404 for non-owned resources — never leak existence via 403
         $prescription = PrescriptionRequest::where('id', $id)
             ->where('customer_id', $customerId)
-            ->with('product')
+            ->with(['product', 'questionnaireResponse'])
             ->firstOrFail();
 
         return view('dashboard.prescription', compact('prescription'));

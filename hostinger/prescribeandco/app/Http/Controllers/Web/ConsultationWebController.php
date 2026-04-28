@@ -41,6 +41,18 @@ class ConsultationWebController extends Controller
         return view('consultation.start', compact('product', 'questionnaire'));
     }
 
+    public function resume(Request $request): RedirectResponse
+    {
+        $pending = $request->session()->pull('pending_consultation');
+
+        if (!$pending) {
+            return redirect()->route('products.index');
+        }
+
+        $request->merge($pending);
+        return $this->submit($request);
+    }
+
     public function submit(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -50,6 +62,17 @@ class ConsultationWebController extends Controller
         ]);
 
         $customerId = $request->session()->get('user_id');
+
+        // Guest: save consultation to session and redirect to auth
+        if (!$customerId) {
+            $request->session()->put('pending_consultation', [
+                'product_id'       => $data['product_id'],
+                'questionnaire_id' => $data['questionnaire_id'],
+                'answers'          => $data['answers'],
+            ]);
+            return redirect()->route('register')
+                ->with('info', 'Please sign in or create an account to submit your consultation.');
+        }
 
         $product = Product::findOrFail($data['product_id']);
         if ($product->status->value !== 'ACTIVE') {

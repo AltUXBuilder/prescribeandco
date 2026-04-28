@@ -30,6 +30,10 @@
           <div><p class="text-sm" style="font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Email</p><p>{{ $rx->customer->email ?? '—' }}</p></div>
           <div><p class="text-sm" style="font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Date of Birth</p><p>{{ $rx->customer->date_of_birth?->format('d M Y') ?? '—' }}</p></div>
           <div><p class="text-sm" style="font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">NHS Number</p><p>{{ $rx->customer->nhs_number ?? '—' }}</p></div>
+          @if($rx->customer->phone ?? null)
+          <div><p class="text-sm" style="font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Phone</p><p>{{ $rx->customer->phone }}</p></div>
+          @endif
+          <div><p class="text-sm" style="font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem">Account created</p><p>{{ $rx->customer->created_at?->format('d M Y') ?? '—' }}</p></div>
         </div>
       </div>
 
@@ -43,11 +47,17 @@
 
       {{-- Questionnaire answers --}}
       @if($rx->questionnaireResponse && $rx->questionnaireResponse->answers)
+      @php
+        $questionMap = [];
+        foreach ($rx->questionnaireResponse->questionnaire?->schema['questions'] ?? [] as $q) {
+            $questionMap[$q['id']] = $q['text'];
+        }
+      @endphp
       <div class="card card-pad">
         <h3 style="font-size:1rem;margin-bottom:1rem">Consultation answers</h3>
         @foreach($rx->questionnaireResponse->answers as $key => $value)
         <div style="padding:.6rem 0;border-bottom:1px solid var(--border)">
-          <p style="font-size:.8rem;font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem">{{ str_replace('_', ' ', $key) }}</p>
+          <p style="font-size:.8rem;font-weight:600;color:var(--charcoal-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem">{{ $questionMap[$key] ?? str_replace('_', ' ', $key) }}</p>
           <p style="font-size:.95rem">{{ is_array($value) ? implode(', ', $value) : $value }}</p>
         </div>
         @endforeach
@@ -63,6 +73,31 @@
             @endif
           </div>
         @endif
+      </div>
+      @endif
+
+      {{-- Order history --}}
+      @if($orderHistory->isNotEmpty())
+      <div class="card card-pad">
+        <h3 style="font-size:1rem;margin-bottom:1rem">Previous requests</h3>
+        <table style="width:100%;font-size:.875rem;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+              <th style="text-align:left;padding:.4rem .5rem;font-weight:600;color:var(--charcoal-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em">Treatment</th>
+              <th style="text-align:left;padding:.4rem .5rem;font-weight:600;color:var(--charcoal-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em">Status</th>
+              <th style="text-align:left;padding:.4rem .5rem;font-weight:600;color:var(--charcoal-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($orderHistory as $hist)
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem">{{ $hist->product->name ?? '—' }}</td>
+              <td style="padding:.5rem">{!! statusBadge($hist->status->value) !!}</td>
+              <td style="padding:.5rem;color:var(--charcoal-muted)">{{ $hist->submitted_at?->format('d M Y') ?? '—' }}</td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
       </div>
       @endif
 

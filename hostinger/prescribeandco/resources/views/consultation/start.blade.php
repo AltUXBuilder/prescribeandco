@@ -11,6 +11,16 @@
         <h1 style="font-size:1.5rem">{{ $product->name }}</h1>
       </div>
 
+      @if(!session('user_id'))
+        <div style="background:var(--lavender-soft);border:1px solid var(--lavender-deep);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:1.5rem;font-size:.9rem;color:var(--charcoal)">
+          You'll be asked to sign in or create an account before submitting your consultation. Your answers will be saved.
+        </div>
+      @endif
+
+      @if(session('info'))
+        <div class="alert alert-success" style="margin-bottom:1.5rem">{{ session('info') }}</div>
+      @endif
+
       {{-- Progress bar --}}
       <div class="progress-bar" id="progressBar">
         <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>

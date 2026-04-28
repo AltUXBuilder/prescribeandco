@@ -53,6 +53,10 @@ class AuthWebController extends Controller
 
         $this->audit->log($user->id, AuditAction::USER_LOGIN, 'users', $user->id);
 
+        if ($request->session()->has('pending_consultation')) {
+            return redirect()->route('consultation.resume');
+        }
+
         $default = match($user->role->value) {
             'ADMIN'      => route('admin.index'),
             'PRESCRIBER' => route('prescriber.queue'),
@@ -100,6 +104,10 @@ class AuthWebController extends Controller
         ]);
 
         $this->audit->log($user->id, AuditAction::USER_REGISTERED, 'users', $user->id);
+
+        if ($request->session()->has('pending_consultation')) {
+            return redirect()->route('consultation.resume');
+        }
 
         return redirect()->route('dashboard')->with('success', 'Account created. Welcome to Prescribe & Co.');
     }

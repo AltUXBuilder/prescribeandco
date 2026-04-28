@@ -41,11 +41,10 @@ Route::middleware('web.guest')->group(function () {
 
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 
-// ── Consultation (must be logged in) ────────────────────────────────────
-Route::middleware('web.auth')->group(function () {
-    Route::get('/consultation/start', [ConsultationWebController::class, 'start'])->name('consultation.start');
-    Route::post('/consultation/submit', [ConsultationWebController::class, 'submit'])->name('consultation.submit');
-});
+// ── Consultation (start + submit are public; resume requires auth) ───────
+Route::get('/consultation/start',  [ConsultationWebController::class, 'start'])->name('consultation.start');
+Route::post('/consultation/submit', [ConsultationWebController::class, 'submit'])->name('consultation.submit');
+Route::middleware('web.auth')->get('/consultation/resume', [ConsultationWebController::class, 'resume'])->name('consultation.resume');
 
 // ── Customer dashboard ───────────────────────────────────────────────────
 Route::middleware('web.auth')->group(function () {
