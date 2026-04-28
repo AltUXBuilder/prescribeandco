@@ -7,6 +7,10 @@
     <p style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lavender-deep);margin-bottom:.25rem">Prescriber Portal</p>
     <h1 style="font-size:1.75rem;margin-bottom:.25rem">Review Queue</h1>
     <p class="text-muted">Logged in as {{ session('user_name') }}</p>
+    <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap">
+      <a href="{{ route('prescriber.questionnaires') }}" class="btn btn-secondary btn-sm">📋 My Questionnaires</a>
+      <a href="{{ route('orders.index') }}" class="btn btn-secondary btn-sm">📦 All Orders</a>
+    </div>
   </div>
 </div>
 

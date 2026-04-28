@@ -56,7 +56,13 @@
     {{-- Quick links --}}
     <div style="display:flex;gap:.75rem;margin-bottom:2.5rem;flex-wrap:wrap">
       <a href="{{ route('admin.users') }}" class="btn btn-secondary btn-sm">👥 Manage Users</a>
-      <a href="{{ route('admin.prescriptions') }}" class="btn btn-secondary btn-sm">📋 All Prescriptions</a>
+      <a href="{{ route('admin.users.create') }}" class="btn btn-secondary btn-sm">➕ Create Staff Account</a>
+      <a href="{{ route('admin.products') }}" class="btn btn-secondary btn-sm">💊 Products</a>
+      <a href="{{ route('admin.questionnaires') }}" class="btn btn-secondary btn-sm">📋 Questionnaires</a>
+      <a href="{{ route('admin.prescriptions') }}" class="btn btn-secondary btn-sm">🗂 All Prescriptions</a>
+      <a href="{{ route('orders.index') }}" class="btn btn-secondary btn-sm">📦 Orders (Full View)</a>
+      <a href="{{ route('prescriber.queue') }}" class="btn btn-secondary btn-sm">🩺 Prescriber Queue</a>
+      <a href="{{ route('dispenser.queue') }}" class="btn btn-secondary btn-sm">📫 Dispenser Queue</a>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem" class="recent-grid">

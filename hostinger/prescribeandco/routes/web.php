@@ -7,8 +7,10 @@ use App\Http\Controllers\Web\ConsultationWebController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DispenserWebController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\OrdersWebController;
 use App\Http\Controllers\Web\PrescriberWebController;
 use App\Http\Controllers\Web\ProductWebController;
+use App\Http\Controllers\Web\QuestionnaireWebController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,6 +62,12 @@ Route::middleware(['web.auth', 'web.role:PRESCRIBER'])->prefix('prescriber')->na
     Route::post('/prescriptions/{id}/approve',   [PrescriberWebController::class, 'approve'])->name('approve');
     Route::post('/prescriptions/{id}/reject',    [PrescriberWebController::class, 'reject'])->name('reject');
     Route::post('/prescriptions/{id}/info',      [PrescriberWebController::class, 'requestInfo'])->name('requestInfo');
+    // Questionnaires
+    Route::get('/questionnaires',                [QuestionnaireWebController::class, 'index'])->name('questionnaires');
+    Route::get('/questionnaires/create',         [QuestionnaireWebController::class, 'create'])->name('questionnaires.create');
+    Route::post('/questionnaires',               [QuestionnaireWebController::class, 'store'])->name('questionnaires.store');
+    Route::get('/questionnaires/{id}/edit',      [QuestionnaireWebController::class, 'edit'])->name('questionnaires.edit');
+    Route::put('/questionnaires/{id}',           [QuestionnaireWebController::class, 'update'])->name('questionnaires.update');
 });
 
 // ── Dispenser dashboard ──────────────────────────────────────────────────
@@ -72,9 +80,31 @@ Route::middleware(['web.auth', 'web.role:DISPENSER'])->prefix('dispenser')->name
 
 // ── Admin dashboard ──────────────────────────────────────────────────────
 Route::middleware(['web.auth', 'web.role:ADMIN'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/',                            [AdminWebController::class, 'index'])->name('index');
-    Route::get('/users',                       [AdminWebController::class, 'users'])->name('users');
-    Route::post('/users/{id}/role',            [AdminWebController::class, 'updateRole'])->name('users.role');
-    Route::post('/users/{id}/toggle-active',   [AdminWebController::class, 'deactivate'])->name('users.toggle');
-    Route::get('/prescriptions',               [AdminWebController::class, 'prescriptions'])->name('prescriptions');
+    Route::get('/',                              [AdminWebController::class, 'index'])->name('index');
+    Route::get('/users',                         [AdminWebController::class, 'users'])->name('users');
+    Route::get('/users/create',                  [AdminWebController::class, 'createUser'])->name('users.create');
+    Route::post('/users',                        [AdminWebController::class, 'storeUser'])->name('users.store');
+    Route::post('/users/{id}/role',              [AdminWebController::class, 'updateRole'])->name('users.role');
+    Route::post('/users/{id}/toggle-active',     [AdminWebController::class, 'deactivate'])->name('users.toggle');
+    Route::get('/prescriptions',                 [AdminWebController::class, 'prescriptions'])->name('prescriptions');
+    // Products
+    Route::get('/products',                      [AdminWebController::class, 'products'])->name('products');
+    Route::get('/products/create',               [AdminWebController::class, 'createProduct'])->name('products.create');
+    Route::post('/products',                     [AdminWebController::class, 'storeProduct'])->name('products.store');
+    Route::get('/products/{id}/edit',            [AdminWebController::class, 'editProduct'])->name('products.edit');
+    Route::put('/products/{id}',                 [AdminWebController::class, 'updateProduct'])->name('products.update');
+    Route::post('/products/{id}/archive',        [AdminWebController::class, 'archiveProduct'])->name('products.archive');
+    // Questionnaires
+    Route::get('/questionnaires',                [QuestionnaireWebController::class, 'index'])->name('questionnaires');
+    Route::get('/questionnaires/create',         [QuestionnaireWebController::class, 'create'])->name('questionnaires.create');
+    Route::post('/questionnaires',               [QuestionnaireWebController::class, 'store'])->name('questionnaires.store');
+    Route::get('/questionnaires/{id}/edit',      [QuestionnaireWebController::class, 'edit'])->name('questionnaires.edit');
+    Route::put('/questionnaires/{id}',           [QuestionnaireWebController::class, 'update'])->name('questionnaires.update');
+    Route::post('/questionnaires/{id}/toggle',   [QuestionnaireWebController::class, 'toggleActive'])->name('questionnaires.toggle');
+});
+
+// ── Shared staff orders view ─────────────────────────────────────────────
+Route::middleware(['web.auth', 'web.role:ADMIN,PRESCRIBER,DISPENSER'])->name('orders.')->group(function () {
+    Route::get('/orders',      [OrdersWebController::class, 'index'])->name('index');
+    Route::get('/orders/{id}', [OrdersWebController::class, 'show'])->name('show');
 });
