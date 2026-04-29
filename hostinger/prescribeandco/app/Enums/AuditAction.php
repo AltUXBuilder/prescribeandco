@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Enums;
+
+enum AuditAction: string
+{
+    // Prescriptions
+    case PRESCRIPTION_DRAFT_CREATED      = 'PRESCRIPTION_DRAFT_CREATED';
+    case PRESCRIPTION_SUBMITTED          = 'PRESCRIPTION_SUBMITTED';
+    case PRESCRIPTION_TAKEN_UNDER_REVIEW = 'PRESCRIPTION_TAKEN_UNDER_REVIEW';
+    case PRESCRIPTION_APPROVED           = 'PRESCRIPTION_APPROVED';
+    case PRESCRIPTION_REJECTED           = 'PRESCRIPTION_REJECTED';
+    case PRESCRIPTION_MORE_INFO          = 'PRESCRIPTION_MORE_INFO_REQUESTED';
+    case PRESCRIPTION_CANCELLED          = 'PRESCRIPTION_CANCELLED';
+    case PRESCRIPTION_EXPIRED            = 'PRESCRIPTION_EXPIRED';
+    case PRESCRIPTION_VIEWED             = 'PRESCRIPTION_VIEWED';
+    case QUESTIONNAIRE_ATTACHED          = 'QUESTIONNAIRE_ATTACHED';
+
+    // Questionnaires
+    case QUESTIONNAIRE_RESPONSE_SUBMITTED = 'QUESTIONNAIRE_RESPONSE_SUBMITTED';
+    case QUESTIONNAIRE_CREATED            = 'QUESTIONNAIRE_CREATED';
+    case QUESTIONNAIRE_UPDATED            = 'QUESTIONNAIRE_UPDATED';
+    case QUESTIONNAIRE_DEACTIVATED        = 'QUESTIONNAIRE_DEACTIVATED';
+
+    // Documents
+    case DOCUMENT_UPLOADED                = 'DOCUMENT_UPLOADED';
+    case DOCUMENT_ACCESSED                = 'DOCUMENT_ACCESSED';
+    case DOCUMENT_DELETED                 = 'DOCUMENT_DELETED';
+    case DOCUMENT_SCAN_COMPLETED          = 'DOCUMENT_SCAN_COMPLETED';
+
+    // Users
+    case USER_REGISTERED                  = 'USER_REGISTERED';
+    case USER_LOGIN                       = 'USER_LOGIN';
+    case USER_LOGOUT                      = 'USER_LOGOUT';
+    case USER_LOGOUT_ALL                  = 'USER_LOGOUT_ALL';
+    case USER_TOKEN_REFRESHED             = 'USER_TOKEN_REFRESHED';
+    case USER_ROLE_CHANGED                = 'USER_ROLE_CHANGED';
+    case USER_DEACTIVATED                 = 'USER_DEACTIVATED';
+    case USER_PASSWORD_CHANGED            = 'USER_PASSWORD_CHANGED';
+
+    // Payments
+    case PAYMENT_AUTHORISED               = 'PAYMENT_AUTHORISED';
+    case PAYMENT_CAPTURED                 = 'PAYMENT_CAPTURED';
+    case PAYMENT_FAILED                   = 'PAYMENT_FAILED';
+    case PAYMENT_VOIDED                   = 'PAYMENT_VOIDED';
+    case PAYMENT_REFUNDED                 = 'PAYMENT_REFUNDED';
+
+    // Dispensing
+    case DISPENSING_STARTED               = 'DISPENSING_STARTED';
+    case DISPENSING_TRACKING_UPDATED      = 'DISPENSING_TRACKING_UPDATED';
+    case DISPENSING_FULFILLED             = 'DISPENSING_FULFILLED';
+
+    // Products
+    case PRODUCT_CREATED                  = 'PRODUCT_CREATED';
+    case PRODUCT_UPDATED                  = 'PRODUCT_UPDATED';
+    case PRODUCT_ARCHIVED                 = 'PRODUCT_ARCHIVED';
+    case PRODUCT_QUESTIONNAIRE_ASSIGNED   = 'PRODUCT_QUESTIONNAIRE_ASSIGNED';
+}
